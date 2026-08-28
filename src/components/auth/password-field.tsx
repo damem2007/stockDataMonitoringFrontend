@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {Eye, EyeOff} from "lucide-react";
 
 export type PasswordPolicy = {
   minLength?: number;
@@ -22,7 +23,7 @@ export function passwordStrength(password: string, policy: PasswordPolicy = {}) 
   return { score, label: score <= 2 ? "Weak" : score <= 4 ? "Good" : "Strong" };
 }
 
-export function PasswordField({
+/*export function PasswordField({
   value,
   onChange,
   label = "Password",
@@ -77,4 +78,9 @@ export function PasswordField({
       ) : null}
     </label>
   );
+}*/
+export function PasswordField({ value, onChange, label = "Password", placeholder, required = false, showStrength = false, policy, autoComplete = "new-password" }: { value: string; onChange: (value: string) => void; label?: string; placeholder?: string; required?: boolean; showStrength?: boolean; policy?: PasswordPolicy; autoComplete?: "current-password" | "new-password" }) {
+  const [visible, setVisible] = useState(false);
+  const strength = useMemo(() => passwordStrength(value, policy), [policy, value]);
+  return <label className="block"><span className="mb-2 block text-sm font-semibold">{label}</span><span className="password-field-wrap"><input className="field pr-10" type={visible ? "text" : "password"} value={value} onChange={(event) => onChange(event.target.value)} autoComplete={autoComplete} placeholder={placeholder} required={required} /><button type="button" className="password-visibility" onClick={() => setVisible((current) => !current)} aria-label={visible ? "Hide password" : "Show password"} title={visible ? "Hide password" : "Show password"}>{visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></span>{showStrength && value ? <span className="password-strength"><span className={`password-strength-bar password-strength-${strength.score}`} /><span>{strength.label}</span></span> : null}</label>;
 }

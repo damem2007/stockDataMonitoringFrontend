@@ -11,6 +11,8 @@ export type User = {
   username: string;
   name: string;
   role: AppRole | string;
+  permissions?: string[];
+  isGuest?: boolean;
 };
 
 export type Instrument = {
@@ -44,9 +46,11 @@ export type WorkspacePayload = {
 };
 
 export type PortfolioPayload = {
+  account?: { id: string; name: string; accountType: string; currency: string; active: boolean } | null;
   portfolio: Record<string, unknown>[];
   categoryExposure: Record<string, unknown>[];
   watchlist: Record<string, unknown>[];
+  activities?: PortfolioActivity[];
   executionPlans?: Record<string, unknown>[];
   metrics: {
     totalInvested: number;
@@ -58,6 +62,22 @@ export type PortfolioPayload = {
     currency?: string;
   };
   notes: string[];
+};
+
+export type PortfolioActivity = {
+  id: string;
+  portfolioId: string;
+  symbol: string;
+  activityType: string;
+  tradeDate: string;
+  shares: number;
+  price: number;
+  amount: number;
+  fees: number;
+  status: string;
+  note: string;
+  realizedPl: number;
+  createdAt: string;
 };
 
 export type AlertRule = {

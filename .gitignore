@@ -59,3 +59,11 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+# ──────────────────────────────────────
+# Others
+# ──────────────────────────────────────
+generated/
+old/
+qa/
+tests/
+tools/

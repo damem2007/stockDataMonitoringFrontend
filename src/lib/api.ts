@@ -5,6 +5,7 @@ import type {
   Instrument,
   MarketsPayload,
   PortfolioPayload,
+  PortfolioActivity,
   TickerSuggestion,
   User,
   WorkspacePayload,
@@ -48,6 +49,37 @@ export function login(loginName: string, password: string) {
   });
 }
 
+export function registerAccount(email: string, username: string, fullName: string, password: string) {
+  return apiFetch<{ access_token: string; token_type: string; user: User }>("/api/auth/register", {
+    method: "POST",
+    body: { email, username, full_name: fullName, password },
+  });
+}
+
+export function updateAccountProfile(token: string, patch: { email?: string; username?: string; full_name?: string }) {
+  return apiFetch<{ access_token: string; token_type: string; user: User }>("/api/account/profile", {
+    token,
+    method: "PATCH",
+    body: patch,
+  });
+}
+
+export function updateAccountPassword(token: string, currentPassword: string, newPassword: string) {
+  return apiFetch<{ status: string }>("/api/account/security/password", {
+    token,
+    method: "PATCH",
+    body: { current_password: currentPassword, new_password: newPassword },
+  });
+}
+
+export function getSubscription(token: string) {
+  return apiFetch<{ subscription: Record<string, unknown> }>("/api/account/subscription", { token });
+}
+
+export function getInvoices(token: string) {
+  return apiFetch<{ invoices: Record<string, unknown>[] }>("/api/account/invoices", { token });
+}
+
 export function getMarkets() {
   return apiFetch<MarketsPayload>("/api/markets");
 }
@@ -59,6 +91,14 @@ export function searchTickers(query: string, markets: string[]) {
 
 export function getWorkspace(token?: string | null) {
   return apiFetch<WorkspacePayload>("/api/workspace", { token });
+}
+
+export function syncWorkspace(token: string | null, instruments?: Instrument[]) {
+  return apiFetch<{ synced: PortfolioPayload }>("/api/workspace/sync", {
+    token,
+    method: "POST",
+    body: { instruments: instruments || [] },
+  });
 }
 
 export function saveWatchlist(token: string | null, exchange: string, instruments: Instrument[]) {
@@ -75,6 +115,51 @@ export function savePortfolio(token: string, exchange: string, instruments: Inst
     method: "POST",
     body: { exchange, role: "Trading", instruments },
   });
+}
+
+export function renamePortfolio(token: string, name: string) {
+  return apiFetch<{ account: NonNullable<PortfolioPayload["account"]>; portfolio: PortfolioPayload }>("/api/portfolio", {
+    token,
+    method: "PATCH",
+    body: { name },
+  });
+}
+
+export function addHoldingLot(token: string, holding: {
+  symbol: string;
+  trade_date?: string;
+  shares: number;
+  price: number;
+  fees?: number;
+  note?: string;
+  intent?: string;
+  strategy?: string;
+}) {
+  return apiFetch<{ activity: PortfolioActivity; portfolio: PortfolioPayload }>("/api/portfolio/holdings", {
+    token,
+    method: "POST",
+    body: holding,
+  });
+}
+
+export function closeHolding(token: string, symbol: string, payload: {
+  action: "TRANSFER" | "LIQUIDATE";
+  trade_date?: string;
+  shares?: number;
+  selling_price?: number;
+  fees?: number;
+  note?: string;
+}) {
+  return apiFetch<{ activity: PortfolioActivity; portfolio: PortfolioPayload }>(`/api/portfolio/holdings/${encodeURIComponent(symbol)}`, {
+    token,
+    method: "DELETE",
+    body: payload,
+  });
+}
+
+export function getPortfolioActivities(token: string, symbol?: string) {
+  const query = symbol ? `?symbol=${encodeURIComponent(symbol)}` : "";
+  return apiFetch<{ activities: PortfolioActivity[] }>(`/api/portfolio/activities${query}`, { token });
 }
 
 export function updateInstruments(token: string | null, instruments: Instrument[]) {

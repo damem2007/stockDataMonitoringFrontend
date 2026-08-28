@@ -1,10 +1,38 @@
 # Changelog
 
+## 2026-08-28
+
+### Frontend
+
+#### Added
+- Added a dedicated `/login` screen with sign-in, account creation, and a `Use as guest` path back into the browser-local watchlist workflow.
+- Added portfolio rename support so the portfolio dashboard can represent a named account/container.
+- Added portfolio CRUD actions for adding more stock, transferring a holding, and liquidating a holding.
+- Added the same Add more stock / Transfer / Liquidate actions to portfolio instrument detail pages.
+- Added purchase/activity history on the portfolio dashboard so original buys, transfers, liquidations, and notes are visible.
+- Added dynamic mini position charts to portfolio holding rows using synced portfolio trend data.
+- Added account profile, security/password, subscription, and invoice screens backed by the new account APIs.
+
+#### Changed
+- Changed portfolio onboarding copy and action labels from creating a dashboard to saving holdings into a named portfolio.
+- Changed protected-route redirects to use the real `/login` route while leaving guest-capable watchlist flows available after sign-out.
+- Changed frontend refresh interval handling to read `NEXT_PUBLIC_REFRESH_INTERVAL_SECOND` or `NEXT_PUBLIC_REFRESH_INTERVAL_SECONDS`.
+
+#### Fixed
+- Fixed the half-implemented portfolio rename provider path that could leave `renamePortfolio` orphaned during builds.
+- Fixed session restoration so expired JWTs are cleared client-side and the user can continue as guest or sign in again.
+
 ## 2026-08-20
 
 ### Frontend
 
 #### Added
+- Added a scoped 30-second dashboard sync loop that refreshes only the instruments already in the current workspace/watchlist instead of scanning broad market lists.
+- Added immediate guest watchlist sync after local save/add actions so computed prices, daily move, and trends populate without waiting for the interval.
+- Added watchlist headers and dynamic mini trend charts based on fetched close-price series.
+- Added a readable News tab card layout with source, publication time, title, clean summary, sentiment, matched aliases, and source links.
+- Added an interpreted Data Sources tab that renders price history, profile, earnings, and news provenance in tables instead of raw JSON.
+- Added richer ML Model and Backtest panels that interpret RSI14, ADX14, directional indicators, MACD histogram, validation, and walk-forward results.
 - Added browser-local guest workspace storage for watchlist instruments and alerts; guest data is identified only by local browser storage and disappears when that storage is cleared.
 - Added a chart-type menu modeled after the reference chart controls, with Line, Candle, Baseline, Mountain, and Bar options.
 - Added point-hover chart tooltips with date/time, OHLC, and volume values.
@@ -30,6 +58,11 @@
 - Added a project-native password field to the sign-in form without introducing external UI dependencies.
 
 #### Changed
+- Changed the `Sync Workspace` action to call the scoped sync endpoint while leaving the manual button visible.
+- Changed portfolio and watchlist mini charts to read from live 5-minute sync data while deeper analysis continues to use the longer analytical history.
+- Changed the instrument chart toward a Yahoo Finance-style layout with a right-side price scale, light plot well, vertical gridlines, current-price marker, OHLC strip, and volume underlay.
+- Changed sign-out behavior so guest-capable pages can continue after logout, while protected portfolio/account routes redirect to the existing landing-page sign-in flow.
+- Changed protected-route redirects from missing `/login` routes to `/?signin=1&next=...`.
 - Changed guest workflow semantics: guests can search, analyze, and maintain a local watchlist, but database-saved watchlists and portfolio dashboards require sign-in.
 - Changed guest workspace identity to browser-local storage only; the landing page now uses one workspace CTA that opens saved local watchlist data when present.
 - Changed ticker entry so typed symbols remain authoritative; autocomplete suggestions now complement typing and only take over when selected or when a fresh company-name search result is available.
@@ -60,6 +93,9 @@
 - Changed the default frontend dev script to clear generated Next.js artifacts before startup and bind to `127.0.0.1:8520`; added `dev:fast` for incremental local starts.
 
 #### Fixed
+- Fixed the custom chart so the Y-axis renders price labels and the X-axis labels are generated from the selected date range ending at the current time/today.
+- Fixed the News tab horizontal overflow by replacing the generic table with a vertical source-card list.
+- Fixed watchlist rows that stayed at `Sync pending` after guest/local changes by syncing scoped instruments immediately.
 - Cleared the stale generated Next.js build output that caused `Cannot find module './833.js'` and verified a clean production build.
 - Fixed recurring `Cannot find module './833.js'` dev-server failures by making `npm run dev` start from a clean generated Next.js cache.
 - Fixed Add holding so React click events are not accidentally stored as ticker symbols, preventing the `trim is not a function` crash during holding onboarding.

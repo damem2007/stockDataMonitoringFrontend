@@ -14,9 +14,9 @@ import {
   saveWatchlist,
   searchTickers,
   updateInstruments,
-} from "../lib/api";
-import { clearAccessToken, getAccessToken, setAccessToken } from "../lib/auth-token";
-import { PasswordField } from "../components/password-field";
+} from "@/lib/api";
+import { clearAccessToken, getAccessToken, setAccessToken } from "@/lib/auth-token";
+import { PasswordField } from "@/components/auth/password-field";
 import type {
   AlertRule,
   AnalysisPayload,
@@ -28,23 +28,39 @@ import type {
   TickerSuggestion,
   User,
   WorkflowMode,
-} from "../lib/types";
+} from "@/lib/types";
+import {
+  ChartCandlestick,
+  BriefcaseBusiness,
+  Users,
+  GitCompareArrows,
+  ChartPie,
+  History,
+  BrainCircuit,
+  LucideChartCandlestick,
+  Newspaper,
+  Bell,
+  Database,
+  Activity,
+  FileText,
+  ChartNoAxesCombined
+} from "lucide-react";
 
 const STRATEGIES = ["Short-term (1-4 weeks)", "Long-term (6-12 months)", "Buy-dip"];
 const INTENTS = ["Buy / Add", "Sell / Trim", "Hold / Watch"];
 const RANGES = ["1D", "5D", "1W", "1M", "3M", "6M", "YTD", "1Y", "10Y"];
 const CHART_TYPES = ["Line", "Candlestick", "Baseline", "Mountain", "Bar"];
 const TABS = [
-  { key: "Focused Brief", label: "Summary" },
-  { key: "Signal", label: "Signal" },
-  { key: "Chart", label: "Chart" },
-  { key: "ML Model", label: "ML model" },
-  { key: "Backtest", label: "Backtest" },
-  { key: "Fit with Portfolio", label: "Fit with portfolio" },
-  { key: "News", label: "News" },
-  { key: "Correlation", label: "Correlation" },
-  { key: "Alerts", label: "Alerts" },
-  { key: "Data Sources", label: "Data sources" },
+  { key: "Focused Brief", label: "Summary", icon: FileText },
+  { key: "Signal", label: "Signal", icon: Activity },
+  { key: "Chart", label: "Chart", icon: LucideChartCandlestick },
+  { key: "ML Model", label: "ML model", icon: BrainCircuit },
+  { key: "Backtest", label: "Backtest", icon: History },
+  { key: "Fit with Portfolio", label: "Fit with portfolio", icon: ChartPie },
+  { key: "News", label: "News", icon: Newspaper },
+  { key: "Correlation", label: "Correlation", icon: GitCompareArrows },
+  { key: "Alerts", label: "Alerts", icon: Bell },
+  { key: "Data Sources", label: "Data sources", icon: Database },
 ];
 type WorkspaceView = "portfolio" | "watchlist" | "instrument";
 type OnboardingBackTarget = "choice" | "dashboard";
@@ -563,14 +579,14 @@ export default function Home() {
           </div>
           <div className="choice-grid">
             <button className="choice-card" onClick={openGuestWorkspace}>
-              <span className="choice-icon" aria-hidden="true" />
+              <span className="choice-icon" aria-hidden="true"> <ChartNoAxesCombined /> </span>
               <small>Research</small>
               <strong>Watchlist</strong>
               <span>Search tickers, run signals, backtests, and ML checks. Stored only in this browser until you sign in.</span>
               <em>{guestWorkspaceExists ? "Open workspace" : "Create workspace"}</em>
             </button>
             <div className="choice-card">
-              <span className="choice-icon" aria-hidden="true" />
+              <span className="choice-icon" aria-hidden="true"><BriefcaseBusiness /></span>
               <small>Full access</small>
               <strong>Portfolio</strong>
               <span>Save watchlists, track holdings, cost basis, P/L, and portfolio-level signals. Premium sign-in required.</span>
@@ -1037,7 +1053,14 @@ function InstrumentDashboard(props: {
       </section>
       <div className="instrument-analysis">
         <nav className="instrument-tabs" aria-label="Instrument sections">
-          {TABS.map((tab) => <button className={props.activeTab === tab.key ? "active" : ""} key={tab.key} onClick={() => props.setActiveTab(tab.key)}>{tab.label}</button>)}
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button className={props.activeTab === tab.key ? "active" : ""} key={tab.key} onClick={() => props.setActiveTab(tab.key)}>
+                <Icon size={16} strokeWidth={1.8} />  <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </nav>
         <section className="tab-panel">
           {props.analysisLoading && <div className="notice">Loading analysis...</div>}
