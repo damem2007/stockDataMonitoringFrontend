@@ -184,7 +184,7 @@ function xAxisLabels(range: string, domain: TimeDomain, plot: PlotArea) {
   const formatter = range === "1D"
     ? (date: Date) => date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
     : (date: Date) => date.toLocaleDateString([], { month: "short", day: "numeric" });
-  const count = range === "1D" ? 5 : 4;
+  const count = range === "1D" ? 7 : range === "5D" || range === "1W" ? 6 : 5;
   return Array.from({ length: count }, (_, index) => {
     const ratio = index / Math.max(count - 1, 1);
     const date = new Date(domain.start + ratio * (domain.end - domain.start));
@@ -195,6 +195,78 @@ function xAxisLabels(range: string, domain: TimeDomain, plot: PlotArea) {
       anchor,
     };
   });
+}
+function rowsInDomain(rows: Record<string, unknown>[], domain: TimeDomain) {
+  const span = Math.max(1, domain.end - domain.start);
+  const buffer = Math.max(60_000, span * 0.01);
+  return rows.filter((row) => {
+    const time = new Date(String(row.Date)).getTime();
+    return Number.isFinite(time) && time >= domain.start - buffer && time <= domain.end + buffer;
+  });
+}
+function constrainDomain(domain: TimeDomain, base: TimeDomain, minFraction = 0.06): TimeDomain {
+  const baseSpan = Math.max(1, base.end - base.start);
+  const minSpan = baseSpan * minFraction;
+  let start = Math.max(base.start, domain.start);
+  let end = Math.min(base.end, domain.end);
+  if (end - start < minSpan) {
+    const center = (start + end) / 2;
+    start = center - minSpan / 2;
+    end = center + minSpan / 2;
+  }
+  if (start < base.start) {
+    end += base.start - start;
+    start = base.start;
+  }
+  if (end > base.end) {
+    start -= end - base.end;
+    end = base.end;
+  }
+  return {
+    start: Math.max(base.start, start),
+    end: Math.min(base.end, end),
+  };
+}
+function pointerRatioForEvent(event: MouseEvent<SVGRectElement> | WheelEvent<SVGRectElement>, target: SVGRectElement) {
+  const box = target.getBoundingClientRect();
+  const ratio = (event.clientX - box.left) / Math.max(1, box.width);
+  return Math.max(0, Math.min(1, Number.isFinite(ratio) ? ratio : 0.5));
+}
+function zoomDomainForWheel(domain: TimeDomain, base: TimeDomain, pointerRatio: number, deltaY: number) {
+  const span = Math.max(1, domain.end - domain.start);
+  const factor = deltaY > 0 ? 1.22 : 0.78;
+  const nextSpan = span * factor;
+  const anchor = domain.start + span * pointerRatio;
+  return constrainDomain({
+    start: anchor - nextSpan * pointerRatio,
+    end: anchor + nextSpan * (1 - pointerRatio),
+  }, base, 0.08);
+}
+function zoomByButton(domain: TimeDomain, base: TimeDomain, factor: number) {
+  const center = (domain.start + domain.end) / 2;
+  const span = Math.max(1, domain.end - domain.start) * factor;
+  return constrainDomain({ start: center - span / 2, end: center + span / 2 }, base, 0.08);
+}
+function nearestRowForX(rows: Record<string, unknown>[], x: number, plot: PlotArea, domain: TimeDomain) {
+  let best: Record<string, unknown> | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const row of rows) {
+    const rowX = xForDate(row.Date, plot, domain);
+    const distance = Math.abs(rowX - x);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = row;
+    }
+  }
+  return best;
+}
+function rangeDescription(range: string, domain: TimeDomain) {
+  const start = new Date(domain.start);
+  const end = new Date(domain.end);
+  const formatter = range === "1D"
+    ? (date: Date) => date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+    : (date: Date) => date.toLocaleDateString([], { month: "short", day: "numeric" });
+  return `${formatter(start)} - ${formatter(end)}`;
 }
 function xGridLines(range: string, domain: TimeDomain, plot: PlotArea) {
   const count = range === "1D" ? 14 : 9;

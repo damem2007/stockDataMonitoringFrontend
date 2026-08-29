@@ -41,18 +41,20 @@ export function ChartView() {
   const primary = filterHistory(instrument.analysis?.history || [], instrument.dateRange);
   const comparisonAnalysis = instrument.temporaryAnalysis || instrument.compareAnalysis;
   const comparison = comparisonAnalysis?.history ? filterHistory(comparisonAnalysis.history, instrument.dateRange) : [];
-  return <div>
-    <div className="chart-controls">
-      <div className="segmented scroll">{RANGES.map((range) => <button className={instrument.dateRange === range ? "active" : ""} key={range} onClick={() => instrument.setDateRange(range)}>{range}</button>)}</div>
+  return <div className="ss-chart-view">
+    <div className="ss-chart-controls">
+      <div className="ss-segmented">{RANGES.map((range) => <button className={instrument.dateRange === range ? "active" : ""} key={range} onClick={() => instrument.setDateRange(range)}>{range}</button>)}</div>
       <ChartTypeMenu value={instrument.chartType} onChange={instrument.setChartType} />
-      <select value={instrument.compareSymbol} onChange={(event) => instrument.setCompareSymbol(event.target.value)}><option value="">Compare loaded instrument</option>{instrument.compareOptions.map((symbol) => <option key={symbol}>{symbol}</option>)}</select>
+      <select className="ss-select" value={instrument.compareSymbol} onChange={(event) => instrument.setCompareSymbol(event.target.value)}><option value="">Compare loaded instrument</option>{instrument.compareOptions.map((symbol) => <option key={symbol}>{symbol}</option>)}</select>
     </div>
-    <PriceChart primary={primary} comparison={comparison} primaryLabel={instrument.analysis?.symbol || ""} comparisonLabel={comparisonAnalysis?.symbol || ""} chartType={instrument.chartType} dateRange={instrument.dateRange} />
-    <div className="temporary-row">
+    <div className="ss-chart-card">
+      <PriceChart primary={primary} comparison={comparison} primaryLabel={instrument.analysis?.symbol || ""} comparisonLabel={comparisonAnalysis?.symbol || ""} chartType={instrument.chartType} dateRange={instrument.dateRange} />
+    </div>
+    <div className="ss-temporary-row">
       <input value={instrument.temporarySymbol} onChange={(event) => instrument.setTemporarySymbol(event.target.value)} placeholder="Temporary comparison ticker" />
-      <button onClick={() => void instrument.loadTemporaryComparison()}>Load temporary</button>
-      <button disabled={!instrument.temporaryAnalysis?.symbol} onClick={() => void instrument.promoteTemporary("Watching")}>Add to watchlist</button>
-      <button disabled={!instrument.temporaryAnalysis?.symbol} onClick={async () => { const promoted = await instrument.promoteTemporary("Trading"); if (promoted) router.push(`/portfolio/setup?symbol=${encodeURIComponent(promoted.symbol)}`); }}>Add to portfolio</button>
+      <button className="ss-btn" onClick={() => void instrument.loadTemporaryComparison()}>Load temporary</button>
+      <button className="ss-btn" disabled={!instrument.temporaryAnalysis?.symbol} onClick={() => void instrument.promoteTemporary("Watching")}>Add to watchlist</button>
+      <button className="ss-btn ss-btn-primary" disabled={!instrument.temporaryAnalysis?.symbol} onClick={async () => { const promoted = await instrument.promoteTemporary("Trading"); if (promoted) router.push(`/portfolio/setup?symbol=${encodeURIComponent(promoted.symbol)}`); }}>Add to portfolio</button>
     </div>
   </div>;
 }

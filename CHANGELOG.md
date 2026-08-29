@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-29
+
+### Frontend
+
+#### Added
+- Added a system-aware Day/Night theme provider with a top-nav theme toggle.
+- Added holding row expanders with performance summaries and links to `/portfolio/{symbol}/summary`.
+- Added execution plan expanders with links to `/portfolio/{symbol}/signal`.
+
+#### Changed
+- Changed the workspace shell and top navigation to use the full browser width with matching gutters.
+- Changed loader, toast, portfolio dashboard, and instrument Summary/Signal/Chart styling to use shared theme tokens.
+- Changed portfolio instrument Summary, Signal, and Chart tabs to match the provided `instrument-preview.html` structure while preserving live data wiring.
+- Changed the shared instrument header, portfolio position metrics, position actions, controls, and tab strip to match the rounded dark `instrument-preview (1).html` treatment.
+
+#### Fixed
+- Fixed low-contrast holding action buttons by overriding global button sizing and strengthening icon-button contrast.
+- Fixed Summary empty-state token scoping so the tab no longer falls back to an unstyled light appearance.
+
 ## 2026-08-28
 
 ### Frontend
@@ -12,15 +31,19 @@
 - Added purchase/activity history on the portfolio dashboard so original buys, transfers, liquidations, and notes are visible.
 - Added dynamic mini position charts to portfolio holding rows using synced portfolio trend data.
 - Added account profile, security/password, subscription, and invoice screens backed by the new account APIs.
+- Added the dark StockSignal portfolio theme across the app shell, including the portfolio hero range selector and themed sector exposure bars.
 
 #### Changed
 - Changed portfolio onboarding copy and action labels from creating a dashboard to saving holdings into a named portfolio.
 - Changed protected-route redirects to use the real `/login` route while leaving guest-capable watchlist flows available after sign-out.
 - Changed frontend refresh interval handling to read `NEXT_PUBLIC_REFRESH_INTERVAL_SECOND` or `NEXT_PUBLIC_REFRESH_INTERVAL_SECONDS`.
+- Changed the instrument chart viewport so each selected date range keeps today/current time as the upper bound while supporting wheel zoom, drag panning, and larger readable candlesticks.
+- Changed the portfolio dashboard hero chart to aggregate synced holding trend data when a dedicated portfolio value-history series is not available.
 
 #### Fixed
 - Fixed the half-implemented portfolio rename provider path that could leave `renamePortfolio` orphaned during builds.
 - Fixed session restoration so expired JWTs are cleared client-side and the user can continue as guest or sign in again.
+- Fixed a chart regression where the new Yahoo-style chart referenced missing zoom-domain helpers at runtime.
 
 ## 2026-08-20
 

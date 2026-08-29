@@ -1,19 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import { Bell, RefreshCw } from "lucide-react";
 import { useInstrument } from "@/providers/instrument-provider";
 
 export function InstrumentHeader() {
   const instrument = useInstrument();
   const basePath = `/${instrument.context}/${encodeURIComponent(instrument.symbol)}`;
   return (
-    <header className="instrument-hero">
-      <div>
-        <div className="breadcrumb"><Link href={`/${instrument.context}`}>{instrument.context === "portfolio" ? "Portfolio" : "Watchlist"}</Link><span>/</span><span>{instrument.symbol}</span></div>
-        <h1>{instrument.symbol}</h1>
-        <p className="muted">{instrument.analysis?.summary?.subtitle || "Summary, signals, charts, alerts, ML, news, backtest, and data sources for the selected instrument."}</p>
+    <header className="ss-instrument-header">
+      <div className="ss-instrument-title-row">
+        <div>
+          <p className="ss-breadcrumb">
+            <Link href={`/${instrument.context}`}>{instrument.context === "portfolio" ? "Portfolio" : "Watchlist"}</Link>
+            <span>/</span>
+            {instrument.symbol}
+          </p>
+          <h1 className="ss-instrument-title">{instrument.symbol}</h1>
+        </div>
+        <div className="ss-instrument-actions">
+          <button className="ss-btn" type="button" onClick={() => void instrument.loadAnalysis()}>
+            <RefreshCw size={14} /> Sync Instrument
+          </button>
+          <Link className="ss-btn ss-btn-primary" href={`${basePath}/alerts`}>
+            <Bell size={14} /> Alert
+          </Link>
+        </div>
       </div>
-      <div className="header-actions"><button onClick={() => void instrument.loadAnalysis()}>Sync Instrument</button><Link className="button-link primary" href={`${basePath}/alerts`}>+ Alert</Link></div>
+      <p className="ss-instrument-subtitle">
+        {instrument.analysis?.summary?.subtitle || "Summary, signals, charts, alerts, ML, news, backtest, and data sources for the selected instrument."}
+      </p>
     </header>
   );
 }

@@ -8,18 +8,18 @@ export function SignalView() {
   const signal = analysis?.signal || {};
   const rows = analysis?.strategyRows || [];
   return (
-    <div className="split-grid">
-      <section className="execution-card">
-        <p className="eyebrow">Execution Plan</p>
-        <h2>{String(signal.action || "No signal")}</h2>
-        <dl>
+    <div className="ss-signal-view">
+      <section className="ss-card ss-signal-execution">
+        <span className="ss-eyebrow">Execution Plan</span>
+        <h2 className="ss-signal-action">{String(signal.action || "No signal")}</h2>
+        <dl className="ss-kv-list">
           <div><dt>Setup</dt><dd>{String(signal.setup || "n/a")}</dd></div>
           <div><dt>Entry zone</dt><dd>{String(signal.entry_zone || "n/a")}</dd></div>
           <div><dt>Exit zone</dt><dd>{String(signal.exit_zone || "n/a")}</dd></div>
           <div><dt>Risk</dt><dd>{String(signal.risk_note || "n/a")}</dd></div>
         </dl>
       </section>
-      <section><TablePanel rows={rows} /></section>
+      <section className="ss-card ss-signal-table-card"><TablePanel rows={rows} /></section>
     </div>
   );
 }

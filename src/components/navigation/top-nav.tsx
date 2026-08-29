@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
+import { useTheme } from "@/providers/theme-provider";
 import { useWorkspace } from "@/providers/workspace-provider";
 
 const ACCOUNT_ITEMS = [
@@ -23,7 +24,8 @@ export const AVATAR_COLORS = [
   "#3730A3", "#6B21A8", "#86198F", "#9F1239", "#115E59", "#075985", "#854D0E", "#44403C", 
   "#3F3F46", "#374151", "#334155", "#166534", "#1E3A8A", "#7F1D1D", "#7C2D12", "#581C87", 
   "#164E63", "#831843", "#365314", "#78350F", "#064E3B", "#312E81", "#701A75", "#881337", 
-  "#134E4A", "#0C4A6E", "#713F12", "#292524", "#27272A", "#1F2937"
+  "#134E4A", "#0C4A6E", "#713F12", "#292524", "#27272A", "#1F2937", "#34D399", "#F87171",
+  "#FBBF24", "#6366F1", "#22D3EE", "#A78BFA",
 ];
 
 
@@ -55,6 +57,7 @@ export function TopNav() {
   const path = usePathname();
   const router = useRouter();
   const session = useSession();
+  const theme = useTheme();
   const workspace = useWorkspace();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -129,6 +132,16 @@ export function TopNav() {
 
       <div className="topbar-user">
         <span className="profile-pill">{workspace.riskProfile} profile</span>
+
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={theme.cyclePreference}
+          title={`Theme: ${theme.preference === "system" ? "System" : theme.preference === "light" ? "Day" : "Night"}`}
+          aria-label={`Theme: ${theme.preference === "system" ? "System" : theme.preference === "light" ? "Day" : "Night"}`}
+        >
+          {theme.preference === "system" ? <Monitor aria-hidden="true" /> : theme.resolvedTheme === "light" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+        </button>
 
         <div className="account-menu" ref={menuRef}>
           <button
