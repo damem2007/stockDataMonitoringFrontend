@@ -56,6 +56,17 @@ export function registerAccount(email: string, username: string, fullName: strin
   });
 }
 
+export function verifyAccount(token: string) {
+  return apiFetch<{ access_token: string; token_type: string; user: User }>(`/api/auth/verify-account?${new URLSearchParams({ token }).toString()}`);
+}
+
+export function requestVerificationLink(loginName: string) {
+  return apiFetch<{ status: string }>("/api/auth/request-verification", {
+    method: "POST",
+    body: { login: loginName },
+  });
+}
+
 export function updateAccountProfile(token: string, patch: { email?: string; username?: string; full_name?: string }) {
   return apiFetch<{ access_token: string; token_type: string; user: User }>("/api/account/profile", {
     token,

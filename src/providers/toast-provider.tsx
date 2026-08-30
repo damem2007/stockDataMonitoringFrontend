@@ -1,9 +1,15 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type ToastTone = "error" | "success" | "info";
 export type ToastMessage = { id: number; tone: ToastTone; text: string };
+const FLASH_TOAST_KEY = "stockSignalFlashToast";
+
+export function queueFlashToast(text: string, tone: ToastTone = "info") {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(FLASH_TOAST_KEY, JSON.stringify({ text, tone }));
+}
 
 type ToastContextValue = {
   toasts: ToastMessage[];
@@ -29,6 +35,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const reportError = useCallback((error: unknown, fallback: string) => {
     showToast(error instanceof Error ? error.message : fallback, "error");
+  }, [showToast]);
+
+  useEffect(() => {
+    const raw = window.sessionStorage.getItem(FLASH_TOAST_KEY);
+    if (!raw) return;
+    window.sessionStorage.removeItem(FLASH_TOAST_KEY);
+    try {
+      const payload = JSON.parse(raw) as { text?: string; tone?: ToastTone };
+      if (payload.text) showToast(payload.text, payload.tone || "info");
+    } catch {
+      // Ignore stale or malformed flash payloads.
+    }
   }, [showToast]);
 
   const value = useMemo(() => ({ toasts, showToast, dismissToast, reportError }), [toasts, showToast, dismissToast, reportError]);

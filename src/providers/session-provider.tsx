@@ -138,6 +138,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     clearAccessToken();
     window.localStorage.removeItem(USER_STORAGE_KEY);
+    //if(sessionStorage.user == "Guest user" || sessionStorage.username)
   }, []);
 
   const value = useMemo(() => ({ initializing, appLoading, token, user, signIn, register, updateProfile, updatePassword, signOut }), [initializing, appLoading, token, user, signIn, register, updateProfile, updatePassword, signOut]);

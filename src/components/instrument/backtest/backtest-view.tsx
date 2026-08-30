@@ -19,19 +19,19 @@ export function BacktestView() {
   const consistency = Number(summary?.consistency_rate);
 
   return (
-    <section className="info-panel">
-      <div className="section-heading">
+    <section className="ss-instrument-panel">
+      <div className="ss-section-heading">
         <div>
-          <p className="eyebrow">Backtest</p>
+          <p className="ss-eyebrow">Backtest</p>
           <h2>RSI pullback rule check</h2>
         </div>
       </div>
-      <div className="analysis-card-grid">
+      <div className="ss-analysis-card-grid">
         <InsightCard label="Rule sample" value={Number.isFinite(trades) ? `${trades.toFixed(0)} trades` : "n/a"} detail={tradeSampleText(trades)} />
         <InsightCard label="Win rate" value={Number.isFinite(winRate) ? percent(winRate) : "n/a"} detail={winRateText(winRate, profitFactor)} />
         <InsightCard label="Current RSI / ADX" value={`${Number.isFinite(rsi) ? rsi.toFixed(1) : "n/a"} / ${Number.isFinite(adx) ? adx.toFixed(1) : "n/a"}`} detail={regimeText(rsi, adx)} />
       </div>
-      <p className="muted">
+      <p className="ss-muted">
         This tab tests the existing RSI + EMA20 pullback rule against history and compares walk-forward windows. ADX is used as context because a low-ADX market can make pullback entries noisy.
       </p>
       <TablePanel rows={[{
@@ -56,7 +56,7 @@ export function BacktestView() {
 }
 
 function InsightCard({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return <article className="insight-card"><span>{label}</span><strong>{value}</strong><p>{detail}</p></article>;
+  return <article className="ss-insight-card"><span>{label}</span><strong>{value}</strong><p>{detail}</p></article>;
 }
 
 function latestHistoryRow(rows: Record<string, unknown>[]) {

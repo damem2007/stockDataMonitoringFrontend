@@ -26,7 +26,26 @@ export function CorrelationView() {
   const { correlation, loadCorrelation, dateRange, period, interval } = useInstrument();
   const { activeSymbols } = useWorkspace();
   useEffect(() => { void loadCorrelation(); }, [loadCorrelation, activeSymbols.join("|"), dateRange, period, interval]);
-  if (activeSymbols.length < 2) return <p className="muted">Load at least two instruments to calculate correlation.</p>;
+  if (activeSymbols.length < 2) {
+    return (
+      <section className="ss-instrument-panel ss-empty-panel">
+        <p className="ss-eyebrow">Correlation</p>
+        <h2>Correlation</h2>
+        <p className="ss-muted">Load at least two instruments to calculate correlation.</p>
+      </section>
+    );
+  }
   const rows = correlation?.matrix || [];
-  return <section className="info-panel"><h2>Correlation</h2><ul>{summarizeCorrelation(rows).map((item) => <li key={item}>{item}</li>)}</ul><TablePanel rows={rows} /></section>;
+  return (
+    <section className="ss-instrument-panel">
+      <div className="ss-section-heading">
+        <div>
+          <p className="ss-eyebrow">Correlation</p>
+          <h2>Correlation</h2>
+        </div>
+      </div>
+      <ul className="ss-summary-list">{summarizeCorrelation(rows).map((item) => <li key={item}>{item}</li>)}</ul>
+      <TablePanel rows={rows} />
+    </section>
+  );
 }

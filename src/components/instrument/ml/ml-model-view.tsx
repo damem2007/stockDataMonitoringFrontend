@@ -20,19 +20,19 @@ export function MlModelView() {
   const edge = Number.isFinite(accuracy) && Number.isFinite(baseline) ? accuracy - baseline : NaN;
 
   return (
-    <section className="info-panel">
-      <div className="section-heading">
+    <section className="ss-instrument-panel">
+      <div className="ss-section-heading">
         <div>
-          <p className="eyebrow">ML Model</p>
+          <p className="ss-eyebrow">ML Model</p>
           <h2>Validated signal context</h2>
         </div>
       </div>
-      <div className="analysis-card-grid">
+      <div className="ss-analysis-card-grid">
         <InsightCard label="Model direction" value={Number.isFinite(probability) ? percent(probability) : "n/a"} detail={modelProbabilityText(probability, accuracy, baseline)} />
         <InsightCard label="RSI read" value={Number.isFinite(rsi) ? rsi.toFixed(1) : "n/a"} detail={rsiText(rsi)} />
         <InsightCard label="ADX trend strength" value={Number.isFinite(adx) ? adx.toFixed(1) : "n/a"} detail={adxText(adx, plusDi, minusDi)} />
       </div>
-      <p className="muted">{String(ml.note || validation.note || "The model is scored against walk-forward validation before the live probability is shown.")}</p>
+      <p className="ss-muted">{String(ml.note || validation.note || "The model is scored against walk-forward validation before the live probability is shown.")}</p>
       <TablePanel rows={[{
         model: String(ml.model_name || ml.model || "logistic"),
         probabilityUp: Number.isFinite(probability) ? percent(probability) : "n/a",
@@ -53,7 +53,7 @@ export function MlModelView() {
 }
 
 function InsightCard({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return <article className="insight-card"><span>{label}</span><strong>{value}</strong><p>{detail}</p></article>;
+  return <article className="ss-insight-card"><span>{label}</span><strong>{value}</strong><p>{detail}</p></article>;
 }
 
 function latestHistoryRow(rows: Record<string, unknown>[]) {

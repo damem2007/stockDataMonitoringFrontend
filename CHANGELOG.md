@@ -6,18 +6,24 @@
 
 #### Added
 - Added a system-aware Day/Night theme provider with a top-nav theme toggle.
-- Added holding row expanders with performance summaries and links to `/portfolio/{symbol}/summary`.
-- Added execution plan expanders with links to `/portfolio/{symbol}/signal`.
+- Added holding row expanders with performance summaries and links to \`/portfolio/{symbol}/summary\`.
+- Added execution plan expanders with links to \`/portfolio/{symbol}/signal\`.
+- Added a public \`/account-verification\` page for account verification email links.
+- Added a guest avatar dropdown with account creation and sign-out actions.
 
 #### Changed
 - Changed the workspace shell and top navigation to use the full browser width with matching gutters.
 - Changed loader, toast, portfolio dashboard, and instrument Summary/Signal/Chart styling to use shared theme tokens.
-- Changed portfolio instrument Summary, Signal, and Chart tabs to match the provided `instrument-preview.html` structure while preserving live data wiring.
-- Changed the shared instrument header, portfolio position metrics, position actions, controls, and tab strip to match the rounded dark `instrument-preview (1).html` treatment.
+- Changed portfolio instrument Summary, Signal, and Chart tabs to a much more advanced UI/UX structure while preserving live data wiring.
+- Changed the shared instrument header, portfolio position metrics, position actions, controls, and tab strip to match the rounded dark UI/UX treatment.
+- Changed ML Model, Backtest, Fit with portfolio, News, Correlation, Alerts, and Data Sources to use the same shared instrument panel theme.
+- Changed portfolio instrument metrics so Unrealized P/L remains in the desktop row instead of wrapping into unused whitespace.
 
 #### Fixed
 - Fixed low-contrast holding action buttons by overriding global button sizing and strengthening icon-button contrast.
 - Fixed Summary empty-state token scoping so the tab no longer falls back to an unstyled light appearance.
+- Fixed the missing divider between portfolio position actions and instrument controls.
+
 
 ## 2026-08-28
 

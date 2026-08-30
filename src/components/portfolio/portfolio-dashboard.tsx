@@ -152,6 +152,16 @@ function displayPct(value: unknown) {
   return `${Math.abs(numeric > 1 ? numeric : numeric * 100).toFixed(1)}%`;
 }
 
+function movementDateLabel(row: Record<string, unknown>) {
+  const raw = row["Price Date"] || row["Quote Date"] || row["As Of"] || row["Last Updated"] || row["Last Synced"];
+  const date = new Date(String(raw || ""));
+  if (!Number.isFinite(date.getTime())) return "Latest quote";
+  const now = new Date();
+  const sameDay = date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+  if (sameDay) return "Today";
+  return `On ${date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
 function holdingSummary(row: Record<string, unknown>, plan: Record<string, unknown> | undefined) {
   const symbol = String(row.Symbol || "This position");
   const currency = currencyForSymbol(symbol);
@@ -163,7 +173,7 @@ function holdingSummary(row: Record<string, unknown>, plan: Record<string, unkno
   const confidenceText = Number.isFinite(Number(confidence)) ? ` with ${formatCell(confidence)} confidence` : "";
   const returnText = since >= 0 ? "up" : "down";
   const todayText = todayValue >= 0 ? "added" : "lost";
-  return `${symbol} is ${returnText} ${money(Math.abs(since), currency)} since purchase and represents ${portfolioWeight} of this portfolio. Today it ${todayText} ${money(Math.abs(todayValue), currency)}. Current execution read: ${planAction}${confidenceText}.`;
+  return `${symbol} is ${returnText} ${money(Math.abs(since), currency)} since purchase and represents ${portfolioWeight} of this portfolio. ${movementDateLabel(row)} it ${todayText} ${money(Math.abs(todayValue), currency)}. Current execution read: ${planAction}${confidenceText}.`;
 }
 
 function executionSummary(plan: Record<string, unknown>, category: string) {

@@ -20,5 +20,16 @@ export function PortfolioFitView() {
   } else {
     rows.push({ context: "Portfolio status", read: "Watchlist only", implication: "Promote this ticker to portfolio only after entering purchase date, average price, and shares." });
   }
-  return <section className="info-panel"><h2>Fit with portfolio</h2><p>This view explains how the selected instrument fits the user workflow. Portfolio-level P/L and allocation appear only for active holdings.</p><TablePanel rows={rows} /></section>;
+  return (
+    <section className="ss-instrument-panel">
+      <div className="ss-section-heading">
+        <div>
+          <p className="ss-eyebrow">Fit</p>
+          <h2>Fit with portfolio</h2>
+        </div>
+      </div>
+      <p className="ss-muted">This view explains how the selected instrument fits the user workflow. Portfolio-level P/L and allocation appear only for active holdings.</p>
+      <TablePanel rows={rows} />
+    </section>
+  );
 }

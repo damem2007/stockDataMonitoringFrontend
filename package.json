@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "rm -rf .next tsconfig.tsbuildinfo && next dev -H 127.0.0.1 --port 8520",
-    "dev:fast": "next dev -H 127.0.0.1 --port 8520",
+    "dev": "rm -rf .next tsconfig.tsbuildinfo && next dev --port 8520",
+    "dev:fast": "next dev -H 0.0.0.0 --port 8520",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

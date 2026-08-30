@@ -12,6 +12,8 @@ export type User = {
   name: string;
   role: AppRole | string;
   permissions?: string[];
+  onboardingStatus?: string;
+  status?: string;
   isGuest?: boolean;
 };
 

@@ -24,10 +24,10 @@ export function DataSourcesView() {
     },
   ];
   return (
-    <section className="info-panel data-source-panel">
-      <div className="section-heading">
+    <section className="ss-instrument-panel ss-data-source-panel">
+      <div className="ss-section-heading">
         <div>
-          <p className="eyebrow">Data Sources</p>
+          <p className="ss-eyebrow">Data Sources</p>
           <h2>Analysis provenance</h2>
         </div>
       </div>

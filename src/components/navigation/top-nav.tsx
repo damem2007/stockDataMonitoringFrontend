@@ -5,7 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
+import { GUEST_WORKSPACE_KEY } from "@/lib/constants";
 import { useTheme } from "@/providers/theme-provider";
+import { queueFlashToast, useToast } from "@/providers/toast-provider";
 import { useWorkspace } from "@/providers/workspace-provider";
 
 const ACCOUNT_ITEMS = [
@@ -59,10 +61,16 @@ export function TopNav() {
   const session = useSession();
   const theme = useTheme();
   const workspace = useWorkspace();
+  const { showToast } = useToast();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const userAvatar = generateUserAvatar(session.user ? String(session.user.name || session.user.username) : "Guest");
+  const isGuest = !session.user || session.user.isGuest;
+  const displayUser = {
+    name: session.user?.name || "Guest",
+    username: session.user?.username || "guest user",
+  };
+  const userAvatar = generateUserAvatar(String(displayUser.name || displayUser.username));
 
   //console.log("Initial", userAvatar);
 
@@ -93,20 +101,24 @@ export function TopNav() {
   }, [accountMenuOpen]);
 
   const handleAvatarClick = () => {
-    if (!session.user) {
-      router.push("/login");
-      return;
-    }
     setAccountMenuOpen((open) => !open);
   };
 
   const handleSignOut = () => {
     setAccountMenuOpen(false);
     session.signOut();
+    if(isGuest){
+      window.localStorage.removeItem(GUEST_WORKSPACE_KEY);
+      showToast("Signed out. You are continuing as a guest.", "info")
+      router.push("/?next=/watchlist");
+      return;
+    }
     if (path.startsWith("/portfolio") || path.startsWith("/account")) {
+      queueFlashToast("Signed out successfully.", "info");
       router.push(`/?next=${encodeURIComponent(path)}`);
       return;
     }
+    showToast("Signed out. You are continuing as a guest.", "info");
     router.refresh();
   };
 
@@ -120,7 +132,7 @@ export function TopNav() {
           <Link className={path.startsWith("/watchlist") ? "active" : ""} href="/watchlist">
             Watchlist
           </Link>
-          {session.user ? (
+          {!isGuest ? (
             <Link className={path.startsWith("/portfolio") ? "active" : ""} href="/portfolio">
               Portfolio
             </Link>
@@ -143,39 +155,52 @@ export function TopNav() {
           {theme.preference === "system" ? <Monitor aria-hidden="true" /> : theme.resolvedTheme === "light" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
         </button>
 
-        <div className="account-menu" ref={menuRef}>
+        <div
+          className="account-menu"
+          ref={menuRef}
+          onMouseEnter={() => setAccountMenuOpen(true)}
+          onMouseLeave={() => setAccountMenuOpen(false)}
+        >
           <button
             type="button"
             className={`avatar-button${path.startsWith("/account") ? " active" : ""}`}
             onClick={handleAvatarClick}
             style={{ backgroundColor: userAvatar.color }} 
-            aria-haspopup={session.user ? "menu" : undefined}
-            aria-expanded={session.user ? accountMenuOpen : undefined}
-            aria-label={session.user ? "Open account menu" : "Sign in"}
+            aria-haspopup="menu"
+            aria-expanded={accountMenuOpen}
+            aria-label="Open account menu"
           >
             <span>{userAvatar.initials}</span>
-            {session.user ? <ChevronDown className="avatar-chevron" aria-hidden="true" /> : null}
+            <ChevronDown className="avatar-chevron" aria-hidden="true" />
           </button>
 
-          {session.user && accountMenuOpen ? (
+          {accountMenuOpen ? (
             <div className="account-dropdown" role="menu" aria-label="Account">
               <div className="account-dropdown-header">
-                <strong>{session.user.name || session.user.username}</strong>
-                {session.user.name && session.user.username ? <span>{session.user.username}</span> : null}
+                <strong>{displayUser.name || displayUser.username}</strong>
+                {displayUser.name && displayUser.username ? <span>{displayUser.username}</span> : null}
               </div>
 
-              <div className="account-dropdown-list">
-                {ACCOUNT_ITEMS.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    role="menuitem"
-                    className={path === item.href ? "active" : ""}
-                  >
-                    {item.label}
+              {!isGuest ? (
+                <div className="account-dropdown-list">
+                  {ACCOUNT_ITEMS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      role="menuitem"
+                      className={path === item.href ? "active" : ""}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="account-dropdown-list">
+                  <Link href="/?mode=register" role="menuitem">
+                    Create an account
                   </Link>
-                ))}
-              </div>
+                </div>
+              )}
 
               <div className="account-dropdown-footer">
                 <button type="button" role="menuitem" onClick={handleSignOut}>

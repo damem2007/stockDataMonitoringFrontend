@@ -11,6 +11,7 @@
   --border: #232c3a;
   --accent: #22d3ee;
   --accent-2: #6366f1;
+  --faint-accent: rgba(99, 102, 241, 0.42);
   --brand-dark: #4f46e5;
   --good: #34d399;
   --bad: #f87171;
@@ -374,9 +375,9 @@ select {
 
 .segmented .active,
 .market-toggle-row .active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: #fff;
+  background: rgba(99, 102, 241, 0.16);
+  border-color: var(--faint-accent); 
+  color: var(--ss-indigo);
 }
 
 .notice {
@@ -453,8 +454,8 @@ select {
 .profile-pill {
   border-radius: 999px;
   border: 1px solid rgba(99, 102, 241, 0.42);
-  background: rgba(99, 102, 241, 0.16);
-  color: #a5b4fc;
+  background: var(--faint-accent);
+  color: var(--ss-indigo); /* #a5b4fc;*/
   padding: 0.35rem 0.75rem;
   font-weight: 700;
 }
@@ -985,6 +986,25 @@ select {
   color: var(--accent);
   font-size: 0.86rem;
   font-weight: 900;
+}
+
+.ss-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ss-page-meta {
+  color: var(--ss-text-tertiary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ss-pagination .ss-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .analysis-card-grid {
@@ -1874,6 +1894,15 @@ a { color: inherit; text-decoration: none; }
   position: relative;
 }
 
+.account-menu::after {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 230px;
+  height: 0.75rem;
+  content: "";
+}
+
 .avatar-button {
   display: inline-flex;
   align-items: center;
@@ -1969,6 +1998,57 @@ a { color: inherit; text-decoration: none; }
 .account-dropdown-footer svg {
   width: 16px;
   height: 16px;
+}
+
+.verification-panel h1 {
+  margin: 0.25rem 0 0.45rem;
+}
+
+.verification-icon {
+  display: inline-flex;
+  width: 46px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--surface-subtle);
+  color: var(--muted);
+}
+
+.verification-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.verification-icon.checking svg {
+  animation: spin 0.9s linear infinite;
+}
+
+.verification-icon.verified {
+  background: rgba(52, 211, 153, 0.14);
+  color: var(--good);
+}
+
+.verification-icon.failed {
+  background: rgba(248, 113, 113, 0.14);
+  color: var(--bad);
+}
+
+.verification-resend-form {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.verification-resend-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.verification-resend-form label span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .portfolio-name-form,
@@ -2234,6 +2314,7 @@ a { color: inherit; text-decoration: none; }
    as a fixed overlay outside that wrapper) so it never touches other pages. */
 
 .ss-portfolio,
+.ss-watchlist-card,
 .ss-modal-backdrop {
   --ss-bg-canvas: var(--bg);
   --ss-bg-surface: var(--panel);
@@ -2271,7 +2352,7 @@ a { color: inherit; text-decoration: none; }
 }
 .ss-portfolio a { color: inherit; text-decoration: none; }
 
-.ss-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #22d3ee; }
+.ss-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent) }
 .ss-card-title { font-family: var(--ss-font-display); font-size: 16px; font-weight: 600; margin: 2px 0 0; }
 .ss-card-sub { font-size: 12px; color: var(--ss-text-tertiary); margin-top: 2px; }
 .ss-muted { font-size: 13px; color: var(--ss-text-secondary); }
@@ -2303,8 +2384,10 @@ a { color: inherit; text-decoration: none; }
 .ss-page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 20px; flex-wrap: wrap; }
 .ss-title-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
 .ss-page-title { font-family: var(--ss-font-display); font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
-.ss-edit-btn { width: 28px; height: 28px; border-radius: 8px; background: var(--ss-bg-surface); border: 1px solid var(--ss-border); display: flex; align-items: center; justify-content: center; color: var(--ss-text-secondary); }
+/*.ss-edit-btn { width: 28px; height: 28px; border-radius: 8px; background: var(--ss-bg-surface); border: 1px solid var(--ss-border); display: flex; align-items: center; justify-content: center; color: var(--ss-text-secondary); }
 .ss-edit-btn:hover { background: var(--ss-bg-surface-hover); color: var(--ss-text-primary); }
+*/.ss-edit-btn { width: 32px; min-width: 32px; height: 32px; min-height: 32px; border-radius: 7px; border: 1px solid var(--ss-border-strong); background: color-mix(in srgb, var(--ss-bg-surface-2), var(--ss-text-primary) 6%); color: var(--ss-text-primary); display: inline-flex; align-items: center; justify-content: center; padding: 0; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ss-bg-surface), transparent 75%); }
+.ss-edit-btn:hover { background: var(--ss-bg-surface-hover); border-color: var(--ss-indigo); color: var(--ss-text-primary); }
 .ss-sync-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12.5px; color: var(--ss-text-tertiary); }
 .ss-header-actions { display: flex; gap: 10px; }
 .ss-name-form { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
@@ -2426,6 +2509,39 @@ a { color: inherit; text-decoration: none; }
 
 .ss-sparkline { display: block; }
 
+.ss-watchlist-card {
+  margin-bottom: 0;
+}
+
+.ss-watchlist-table {
+  min-width: 860px;
+}
+
+.ss-watchlist-sparkline {
+  width: 108px;
+  height: 32px;
+  overflow: visible;
+}
+
+.ss-watchlist-sparkline polyline {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ss-watchlist-sparkline.gain polyline {
+  stroke: var(--ss-emerald, var(--good));
+}
+
+.ss-watchlist-sparkline.loss polyline {
+  stroke: var(--ss-coral, var(--bad));
+}
+
+.ss-watchlist-actions {
+  min-width: 268px;
+}
+
 /* Execution */
 .ss-execution-card { margin-bottom: 16px; }
 .ss-execution-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; margin-bottom: 4px; }
@@ -2500,7 +2616,9 @@ a { color: inherit; text-decoration: none; }
 .ss-signal-view,
 .ss-chart-view,
 .ss-instrument-header,
-.ss-instrument-tabs {
+.ss-instrument-tabs,
+.ss-instrument-page,
+.ss-instrument-panel {
   --ss-bg-canvas: var(--bg);
   --ss-bg-surface: var(--panel);
   --ss-bg-surface-2: var(--surface-subtle);
@@ -2521,7 +2639,7 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--ss-font-body);
 }
 
-.ss-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #22d3ee; }
+.ss-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); }
 .ss-card { background: var(--ss-bg-surface); border: 1px solid var(--ss-border); border-radius: 16px; padding: 22px; }
 .ss-btn { font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 9px; border: 1px solid var(--ss-border-strong); background: var(--ss-bg-surface); color: var(--ss-text-primary); display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-family: var(--ss-font-body); }
 .ss-btn:hover { background: var(--ss-bg-surface-hover); }
@@ -2536,8 +2654,8 @@ a { color: inherit; text-decoration: none; }
 
 .ss-instrument-header {
   display: grid;
-  gap: 18px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
 .ss-breadcrumb {
@@ -2548,7 +2666,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .ss-breadcrumb a {
-  color: var(--ss-text-secondary);
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -2572,18 +2690,18 @@ a { color: inherit; text-decoration: none; }
 .ss-instrument-title {
   color: var(--ss-text-primary);
   font-family: var(--ss-font-display);
-  font-size: clamp(2.4rem, 7vw, 5.7rem);
+  font-size: clamp(2rem, 4vw, 2.65rem);
   font-weight: 700;
   letter-spacing: 0;
-  line-height: 0.95;
+  line-height: 1.05;
   margin: 0;
 }
 
 .ss-instrument-subtitle {
   color: var(--ss-text-secondary);
-  font-size: 18px;
-  line-height: 1.5;
-  margin: -4px 0 4px;
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 10px 0 0;
   max-width: 1120px;
 }
 
@@ -2595,18 +2713,62 @@ a { color: inherit; text-decoration: none; }
   flex-wrap: wrap;
 }
 
-.ss-instrument-stats {
+.ss-instrument-page {
+  width: 100%;
+}
+
+.ss-instrument-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
   gap: 12px;
+  align-items: stretch;
+  margin-top: 16px;
+}
+
+.ss-metric-card {
+  min-height: 74px;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  border: 1px solid var(--ss-border);
+  border-radius: 10px;
+  background: var(--ss-bg-surface);
+  padding: 15px 16px;
+}
+
+.ss-metric-label {
+  color: var(--ss-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ss-metric-value {
+  color: var(--ss-text-primary);
+  font-family: var(--ss-font-mono);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.ss-metric-sub {
+  color: var(--ss-text-tertiary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ss-instrument-divider {
+  width: 100%;
+  height: 1px;
+  margin: 24px 0 20px;
+  background: var(--ss-border);
 }
 
 .ss-instrument-controls {
   display: grid;
   grid-template-columns: repeat(5, minmax(150px, 1fr));
   gap: 16px;
-  padding: 20px 0 8px;
-  border-top: 1px solid var(--ss-border);
+  padding: 0 0 8px;
 }
 
 .ss-control-field {
@@ -2824,3 +2986,239 @@ a { color: inherit; text-decoration: none; }
 .ss-temporary-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
 .ss-temporary-row input { background: var(--ss-bg-surface-2); border: 1px solid var(--ss-border-strong); border-radius: 9px; padding: 9px 12px; color: var(--ss-text-primary); font-size: 13px; min-width: 220px; flex: 1; font-family: var(--ss-font-body); }
 .ss-temporary-row input:focus-visible { outline: 2px solid var(--ss-indigo); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ */
+/*  Remaining instrument tabs                                          */
+/* ------------------------------------------------------------------ */
+
+.ss-instrument-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.ss-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ss-section-heading h2,
+.ss-instrument-panel h2,
+.ss-instrument-panel h3 {
+  color: var(--ss-text-primary);
+  font-family: var(--ss-font-display);
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.ss-section-heading h2,
+.ss-instrument-panel h2 {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.ss-instrument-panel h3 {
+  font-size: 14px;
+  line-height: 1.3;
+  margin-top: 4px;
+}
+
+.ss-muted,
+.ss-instrument-panel .muted {
+  color: var(--ss-text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.ss-analysis-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ss-insight-card {
+  display: grid;
+  gap: 8px;
+  min-height: 148px;
+  border: 1px solid var(--ss-border);
+  border-radius: 14px;
+  background: var(--ss-bg-surface);
+  padding: 18px;
+}
+
+.ss-insight-card span {
+  color: var(--ss-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ss-insight-card strong {
+  color: var(--ss-text-primary);
+  font-family: var(--ss-font-mono);
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.ss-insight-card p {
+  color: var(--ss-text-secondary);
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.ss-instrument-panel .table-wrap {
+  border-color: var(--ss-border);
+  border-radius: 14px;
+  background: var(--ss-bg-surface);
+}
+
+.ss-instrument-panel table {
+  color: var(--ss-text-primary);
+}
+
+.ss-instrument-panel th {
+  background: var(--ss-bg-surface-2);
+  border-bottom-color: var(--ss-border);
+  color: var(--ss-text-secondary);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ss-instrument-panel td {
+  border-top-color: var(--ss-border);
+  color: var(--ss-text-secondary);
+}
+
+.ss-summary-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ss-summary-list li {
+  border: 1px solid var(--ss-border);
+  border-radius: 12px;
+  background: var(--ss-bg-surface);
+  color: var(--ss-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 14px 16px;
+}
+
+.ss-empty-panel {
+  border: 1px solid var(--ss-border);
+  border-radius: 16px;
+  background: var(--ss-bg-surface);
+  padding: 24px;
+}
+
+.ss-news-panel .news-count {
+  color: var(--ss-text-tertiary);
+}
+
+.ss-news-panel .news-list {
+  gap: 12px;
+}
+
+.ss-news-panel .news-card {
+  border-color: var(--ss-border);
+  border-radius: 14px;
+  background: var(--ss-bg-surface);
+  padding: 18px;
+}
+
+.ss-news-panel .news-card h3 {
+  color: var(--ss-text-primary);
+  font-family: var(--ss-font-display);
+  font-size: 16px;
+}
+
+.ss-news-panel .news-card p,
+.ss-news-panel .news-card time,
+.ss-news-panel .news-card footer span {
+  color: var(--ss-text-secondary);
+}
+
+.ss-news-panel .news-source,
+.ss-news-panel .news-card a {
+  color: #22d3ee;
+}
+
+.ss-news-panel .ss-pagination {
+  border-top: 1px solid var(--ss-border);
+  padding-top: 14px;
+}
+
+.ss-alerts-board {
+  gap: 14px;
+}
+
+.ss-alert-list {
+  display: grid;
+  gap: 10px;
+}
+
+.ss-alert-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--ss-border);
+  border-radius: 14px;
+  background: var(--ss-bg-surface);
+  padding: 12px;
+}
+
+.ss-alert-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ss-text-primary);
+  cursor: pointer;
+  padding: 4px;
+  text-align: left;
+}
+
+.ss-alert-main strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ss-alert-main span,
+.ss-alert-main small {
+  color: var(--ss-text-secondary);
+  font-size: 12px;
+}
+
+.ss-data-source-panel {
+  gap: 18px;
+}
+
+@media (max-width: 960px) {
+  .ss-instrument-metrics,
+  .ss-analysis-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .ss-instrument-metrics,
+  .ss-analysis-card-grid,
+  .ss-alert-card {
+    grid-template-columns: 1fr;
+  }
+
+  .ss-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

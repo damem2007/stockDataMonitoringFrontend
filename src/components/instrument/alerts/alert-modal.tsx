@@ -11,10 +11,10 @@ export function AlertModal({ alert, setAlert, onSubmit, onClose, symbol }: {
 }) {
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true">
-      <section className="alert-modal">
-        <div className="section-heading">
-          <div><p className="eyebrow">Create alert</p><h2>{alert.symbol || symbol}</h2></div>
-          <button onClick={onClose}>Close</button>
+      <section className="alert-modal ss-instrument-panel">
+        <div className="ss-section-heading">
+          <div><p className="ss-eyebrow">Create alert</p><h2>{alert.symbol || symbol}</h2></div>
+          <button className="ss-btn" onClick={onClose}>Close</button>
         </div>
         <div className="form-grid">
           <input value={alert.symbol || symbol} onChange={(event) => setAlert({ ...alert, symbol: event.target.value.toUpperCase() })} placeholder="Symbol or __PORTFOLIO__" />
@@ -22,7 +22,7 @@ export function AlertModal({ alert, setAlert, onSubmit, onClose, symbol }: {
           <select value={alert.operator} onChange={(event) => setAlert({ ...alert, operator: event.target.value })}>{["Crossing", "Crossing Up", "Crossing Down", "Above", "Below"].map((item) => <option key={item}>{item}</option>)}</select>
           <input type="number" value={alert.threshold} onChange={(event) => setAlert({ ...alert, threshold: Number(event.target.value) })} />
         </div>
-        <div className="inline-actions"><button className="primary" onClick={onSubmit}>Create alert</button><button onClick={onClose}>Cancel</button></div>
+        <div className="inline-actions"><button className="ss-btn ss-btn-primary" onClick={onSubmit}>Create alert</button><button className="ss-btn" onClick={onClose}>Cancel</button></div>
       </section>
     </div>
   );

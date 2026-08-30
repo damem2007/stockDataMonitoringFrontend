@@ -121,7 +121,7 @@ export default function Home() {
             <span>
               Search tickers, run signals, backtests, and ML checks. Stored only in this browser until you sign in.
             </span>
-            <em>{guestWorkspaceExists ? "Open workspace" : "Create workspace"}</em>
+            <em>{guestWorkspaceExists ? "Continue workspace as a guest" : "Create guest workspace"}</em>
           </button>
 
           <div className={`choice-card${showSignIn && !session.user ? " choice-card-signin" : ""}`}>
