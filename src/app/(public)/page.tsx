@@ -83,19 +83,23 @@ export default function Home() {
 
       <section className="choice-panel">
         <div className="choice-intro">
-          <Link href="/" className="brand-link">
-            <strong className="eyebrow">StockSignal</strong>
-          </Link>
-          <p className="eyebrow">Stock workspace</p>
-          <button
-            type="button"
-            className="theme-toggle"
-            onClick={theme.cyclePreference}
-            title={`Theme: ${theme.preference === "system" ? "System" : theme.preference === "light" ? "Day" : "Night"}`}
-            aria-label={`Theme: ${theme.preference === "system" ? "System" : theme.preference === "light" ? "Day" : "Night"}`}
-          >
-            {theme.preference === "system" ? <Monitor aria-hidden="true" /> : theme.resolvedTheme === "light" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-          </button>
+          <div className="choice-intro-header">
+            <div className="choice-intro-heading">
+              <Link href="/" className="brand-link">
+                <strong className="eyebrow">StockSignal</strong>
+              </Link>
+              <p className="eyebrow">Stock workspace</p>
+            </div>
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={theme.cyclePreference}
+              title={`Theme: ${theme.preference === "system" ? "System" : theme.preference === "light" ? "Day" : "Night"}`}
+              aria-label={`Theme: ${theme.preference === "system" ? "System" : theme.preference === "light" ? "Day" : "Night"}`}
+            >
+              {theme.preference === "system" ? <Monitor aria-hidden="true" /> : theme.resolvedTheme === "light" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+            </button>
+          </div>
           <h1>Start with the workflow you need today</h1>
           <p className="muted">
             Search and analyze tickers as a guest with a browser-local watchlist, or sign in to save watchlists, track holdings, and use premium portfolio dashboards.

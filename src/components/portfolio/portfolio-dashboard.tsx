@@ -14,6 +14,7 @@ import {
   Edit3,
   Eye,
   Info,
+  LoaderCircle,
   Plus,
   RefreshCw,
   Trash2,
@@ -28,7 +29,7 @@ import {
   AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis,
   PieChart, Pie, Cell
 } from "recharts";
-import { generateAvatarColor } from "@/components/navigation/top-nav";
+import { AVATAR_COLORS, generateAvatarColor } from "@/components/navigation/top-nav";
 
 
 export type HoldingAction = "add" | "transfer" | "liquidate" | null;
@@ -152,14 +153,81 @@ function displayPct(value: unknown) {
   return `${Math.abs(numeric > 1 ? numeric : numeric * 100).toFixed(1)}%`;
 }
 
+function uniqueColorMap(names: string[], options: { generateFallback?: boolean } = {}) {
+  const used = new Set<string>();
+  const assigned = new Map<string, string>();
+  const uniqueNames = Array.from(new Set(names.filter(Boolean)));
+  uniqueNames.forEach((name, index) => {
+    const preferred = generateAvatarColor(name);
+    if (!used.has(preferred)) {
+      assigned.set(name, preferred);
+      used.add(preferred);
+      return;
+    }
+    const paletteColor = AVATAR_COLORS.find((color) => !used.has(color));
+    if (paletteColor) {
+      assigned.set(name, paletteColor);
+      used.add(paletteColor);
+      return;
+    }
+    const fallback = options.generateFallback ? generatedUniqueColor(name, used) : AVATAR_COLORS[index % AVATAR_COLORS.length];
+    assigned.set(name, fallback);
+    used.add(fallback);
+  });
+  return assigned;
+}
+
+function generatedUniqueColor(seed: string, used: Set<string>) {
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = seed.charCodeAt(index) + ((hash << 5) - hash);
+  }
+  for (let offset = 0; offset < 360; offset += 37) {
+    const hue = (Math.abs(hash) + offset) % 360;
+    const color = `hsl(${hue} 72% 54%)`;
+    if (!used.has(color)) return color;
+  }
+  return `hsl(${Math.abs(hash) % 360} 72% 54%)`;
+}
+
 function movementDateLabel(row: Record<string, unknown>) {
   const raw = row["Price Date"] || row["Quote Date"] || row["As Of"] || row["Last Updated"] || row["Last Synced"];
   const date = new Date(String(raw || ""));
   if (!Number.isFinite(date.getTime())) return "Latest quote";
   const now = new Date();
   const sameDay = date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
-  if (sameDay) return "Today";
+  const localDateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  const utcDateKey = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;
+  const crossesUtcDate = localDateKey !== utcDateKey;
+  if (sameDay) {
+    if (crossesUtcDate) return `Today (${localDateTime(date)} / ${utcDateTime(date)})`;
+    return "Today";
+  }
+  if (crossesUtcDate) return `At ${localDateTime(date)} / ${utcDateTime(date)}`;
   return `On ${date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
+function localDateTime(date: Date) {
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+}
+
+function utcDateTime(date: Date) {
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  });
 }
 
 function holdingSummary(row: Record<string, unknown>, plan: Record<string, unknown> | undefined) {
@@ -292,13 +360,13 @@ function asRatio(value: unknown) {
 /* ------------------------------------------------------------------ */
 
 function AllocationCard({ rows }: { rows: Record<string, unknown>[] }) {
+  const colorBySymbol = uniqueColorMap(rows.map((row) => String(row.Symbol || "")), { generateFallback: true });
   const data = rows.map((row) => {
     const symbol = String(row.Symbol || "");
-    //const category = String(symbol);
     return {
       name: symbol,
       value: Math.max(0, Number(row["Portfolio %"]) || 0),
-      color: generateAvatarColor(symbol),
+      color: colorBySymbol.get(symbol) || generateAvatarColor(symbol),
     };
   });
 
@@ -339,6 +407,10 @@ function AllocationCard({ rows }: { rows: Record<string, unknown>[] }) {
 }
 
 function exposureRows(exposure: Record<string, unknown>[], holdings: Record<string, unknown>[]) {
+  const exposureNames = exposure.length
+    ? exposure.map((row, index) => String(row.Category || row.Sector || row.Name || row.Symbol || `Exposure ${index + 1}`))
+    : Array.from(new Set(holdings.map((row) => String(row.Category || "Unassigned"))));
+  const colorBySector = uniqueColorMap(exposureNames, { generateFallback: false });
   if (exposure.length) {
     return exposure.map((row, index) => {
       const name = String(row.Category || row.Sector || row.Name || row.Symbol || `Exposure ${index + 1}`);
@@ -347,7 +419,7 @@ function exposureRows(exposure: Record<string, unknown>[], holdings: Record<stri
         ratio: asRatio(row["Portfolio %"] ?? row["% of portfolio"] ?? row.Weight ?? row.Exposure),
         marketValue: Number(row["Market Value"] ?? row.Value ?? row.Amount) || 0,
         change: Number(row["Today $"] ?? row["Since Purchase $"] ?? row.Change) || 0,
-        color: generateAvatarColor(name),
+        color: colorBySector.get(name) || AVATAR_COLORS[index % AVATAR_COLORS.length],
       };
     });
   }
@@ -362,12 +434,12 @@ function exposureRows(exposure: Record<string, unknown>[], holdings: Record<stri
     grouped.set(name, current);
   });
 
-  return Array.from(grouped, ([name, row]) => ({
+  return Array.from(grouped, ([name, row], index) => ({
     name,
     ratio: total ? row.marketValue / total : 0,
     marketValue: row.marketValue,
     change: row.change,
-    color: generateAvatarColor(name),
+    color: colorBySector.get(name) || AVATAR_COLORS[index % AVATAR_COLORS.length],
   }));
 }
 
@@ -412,7 +484,8 @@ function SectorExposureCard({ exposure, holdings }: { exposure: Record<string, u
 /*  Insights (portfolio inference notes)                               */
 /* ------------------------------------------------------------------ */
 
-function InsightsCard({ notes }: { notes: string[] }) {
+function InsightsCard({ notes, rows }: { notes: string[]; rows: Record<string, unknown>[] }) {
+  const symbols = rows.map((row) => String(row.Symbol || "")).filter(Boolean);
   return (
     <div className="ss-card">
       <span className="ss-eyebrow">Inference</span>
@@ -421,18 +494,36 @@ function InsightsCard({ notes }: { notes: string[] }) {
         {!notes.length ? (
           <p className="ss-muted" style={{ marginTop: 14 }}>No notes for this portfolio yet.</p>
         ) : (
-          notes.map((note, index) => (
-            <div className="ss-insight-row" key={`${index}-${note.slice(0, 24)}`}>
-              <div className={`ss-insight-icon ${index === 0 ? "ss-tone-bg-amber" : index === 1 ? "ss-tone-bg-emerald" : "ss-tone-bg-coral"}`}>
-                {index === 0 ? <AlertTriangle size={13} /> : index === 1 ? <TrendingUp size={13} /> : index === 2 ? <AlertCircle size={13} /> : <Info size={13} />}
+          notes.map((note, index) => {
+            const symbol = symbolFromInsight(note, symbols);
+            return (
+              <div className="ss-insight-row" key={`${index}-${note.slice(0, 24)}`}>
+                <div className={`ss-insight-icon ${index === 0 ? "ss-tone-bg-amber" : index === 1 ? "ss-tone-bg-emerald" : "ss-tone-bg-coral"}`}>
+                  {index === 0 ? <AlertTriangle size={13} /> : index === 1 ? <TrendingUp size={13} /> : index === 2 ? <AlertCircle size={13} /> : <Info size={13} />}
+                </div>
+                <div className="ss-insight-copy">
+                  <p className="ss-insight-body">{note}</p>
+                  {symbol ? (
+                    <Link className="ss-insight-cta" href={`/portfolio/${encodeURIComponent(symbol)}/summary`}>
+                      View {symbol} analysis <ChevronRight size={13} />
+                    </Link>
+                  ) : null}
+                </div>
               </div>
-              <p className="ss-insight-body">{note}</p>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
   );
+}
+
+function symbolFromInsight(note: string, symbols: string[]) {
+  return symbols.find((symbol) => new RegExp(`(^|[^A-Z0-9.-])${escapeRegExp(symbol)}([^A-Z0-9.-]|$)`, "i").test(note));
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /* ------------------------------------------------------------------ */
@@ -443,10 +534,12 @@ function HoldingsTable({
   rows,
   executionPlans,
   onAction,
+  disabled = false,
 }: {
   rows: Record<string, unknown>[];
   executionPlans: Record<string, unknown>[];
   onAction: (action: HoldingAction, row: Record<string, unknown>) => void;
+  disabled?: boolean;
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("Market Value");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -585,13 +678,13 @@ function HoldingsTable({
                     </td>
                     <td className="ss-col-actions">
                       <div className="ss-row-actions">
-                        <button type="button" className="ss-icon-btn" title="Add more" onClick={() => onAction("add", row)}>
+                        <button type="button" className="ss-icon-btn" disabled={disabled} title="Add more" onClick={() => onAction("add", row)}>
                           <Plus size={14} />
                         </button>
-                        <button type="button" className="ss-icon-btn" title="Transfer" onClick={() => onAction("transfer", row)}>
+                        <button type="button" className="ss-icon-btn" disabled={disabled} title="Transfer" onClick={() => onAction("transfer", row)}>
                           <Archive size={14} />
                         </button>
-                        <button type="button" className="ss-icon-btn ss-icon-btn-danger" title="Liquidate" onClick={() => onAction("liquidate", row)}>
+                        <button type="button" className="ss-icon-btn ss-icon-btn-danger" disabled={disabled} title="Liquidate" onClick={() => onAction("liquidate", row)}>
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -736,6 +829,7 @@ export function HoldingActionModal({ action, row, onClose }: { action: HoldingAc
   const [shares, setShares] = useState("");
   const [price, setPrice] = useState("");
   const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   if (!action || !row) return null;
   const symbol = String(row.Symbol || "");
   const currentShares = Number(row.Shares) || 0;
@@ -743,58 +837,70 @@ export function HoldingActionModal({ action, row, onClose }: { action: HoldingAc
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (action === "add") {
-      const lot: Instrument = {
-        ...emptyInstrument("Trading"),
-        symbol,
-        purchase_date: date,
-        shares: Number(shares),
-        average_cost: Number(price),
-        notes: note,
-      };
-      await workspace.addPortfolioLot(lot);
-    } else {
-      await workspace.closePortfolioHolding(symbol, {
-        action: action === "transfer" ? "TRANSFER" : "LIQUIDATE",
-        trade_date: date,
-        shares: shares ? Number(shares) : currentShares,
-        selling_price: action === "liquidate" ? Number(price) : undefined,
-        note,
-      });
+    if (submitting || workspace.appLoading) return;
+    setSubmitting(true);
+    try {
+      if (action === "add") {
+        const lot: Instrument = {
+          ...emptyInstrument("Trading"),
+          symbol,
+          purchase_date: date,
+          shares: Number(shares),
+          average_cost: Number(price),
+          notes: note,
+        };
+        await workspace.addPortfolioLot(lot);
+      } else {
+        await workspace.closePortfolioHolding(symbol, {
+          action: action === "transfer" ? "TRANSFER" : "LIQUIDATE",
+          trade_date: date,
+          shares: shares ? Number(shares) : currentShares,
+          selling_price: action === "liquidate" ? Number(price) : undefined,
+          note,
+        });
+      }
+      onClose();
+    } catch {
+      // WorkspaceProvider reports action failures through the shared toast system.
+    } finally {
+      setSubmitting(false);
     }
-    onClose();
   }
 
   const title = action === "add" ? `Add more ${symbol}` : action === "transfer" ? `Transfer ${symbol}` : `Liquidate ${symbol}`;
+  const busy = submitting || workspace.appLoading;
   return (
     <div className="ss-modal-backdrop" role="presentation">
       <form className="ss-modal-card" onSubmit={submit}>
         <header className="ss-modal-header">
           <h2>{title}</h2>
-          <button type="button" className="ss-icon-btn" onClick={onClose} aria-label="Close">×</button>
+          <button type="button" className="ss-icon-btn" disabled={busy} onClick={onClose} aria-label="Close">×</button>
         </header>
         <p className="ss-muted">Current position: {formatCell(currentShares)} shares, average cost {money(Number(row["Avg Cost"]), currency)}.</p>
         <label className="ss-field">
           Date
-          <input type="date" value={date} onChange={(event) => setDate(event.target.value)} required />
+          <input type="date" disabled={busy} value={date} onChange={(event) => setDate(event.target.value)} required />
         </label>
         <label className="ss-field">
           Shares
-          <input type="number" min="0" step="0.0001" value={shares} placeholder={action === "add" ? "Shares bought" : `${currentShares}`} onChange={(event) => setShares(event.target.value)} />
+          <input type="number" disabled={busy} min="0" step="0.0001" value={shares} placeholder={action === "add" ? "Shares bought" : `${currentShares}`} onChange={(event) => setShares(event.target.value)} />
         </label>
         {action !== "transfer" ? (
           <label className="ss-field">
             {action === "add" ? "Purchase price" : "Selling price"}
-            <input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(event.target.value)} required />
+            <input type="number" disabled={busy} min="0" step="0.01" value={price} onChange={(event) => setPrice(event.target.value)} required />
           </label>
         ) : null}
         <label className="ss-field">
           Note
-          <textarea value={note} onChange={(event) => setNote(event.target.value)} required={action === "transfer"} placeholder={action === "transfer" ? "Transfer destination or reason" : "Optional note"} />
+          <textarea disabled={busy} value={note} onChange={(event) => setNote(event.target.value)} required={action === "transfer"} placeholder={action === "transfer" ? "Transfer destination or reason" : "Optional note"} />
         </label>
         <div className="ss-modal-actions">
-          <button type="button" className="ss-btn" onClick={onClose}>Cancel</button>
-          <button className="ss-btn ss-btn-primary" type="submit">{action === "add" ? "Save purchase" : "Save activity"}</button>
+          <button type="button" className="ss-btn" disabled={busy} onClick={onClose}>Cancel</button>
+          <button className="ss-btn ss-btn-primary" disabled={busy} type="submit">
+            {busy ? <LoaderCircle className="button-spinner" size={16} /> : null}
+            {busy ? "Saving" : action === "add" ? "Save purchase" : "Save activity"}
+          </button>
         </div>
       </form>
     </div>
@@ -861,13 +967,20 @@ export function PortfolioDashboard() {
                       className="ss-name-form"
                       onSubmit={async (event) => {
                         event.preventDefault();
-                        await workspace.renamePortfolioAccount(portfolioName);
-                        setEditingName(false);
+                        try {
+                          await workspace.renamePortfolioAccount(portfolioName);
+                          setEditingName(false);
+                        } catch {
+                          // WorkspaceProvider reports rename failures through the shared toast system.
+                        }
                       }}
                     >
-                      <input value={portfolioName} onChange={(event) => setPortfolioName(event.target.value)} />
-                      <button className="ss-btn ss-btn-primary" type="submit">Save</button>
-                      <button className="ss-btn" type="button" onClick={() => setEditingName(false)}>Cancel</button>
+                      <input disabled={workspace.appLoading} value={portfolioName} onChange={(event) => setPortfolioName(event.target.value)} />
+                      <button className="ss-btn ss-btn-primary" disabled={workspace.appLoading} type="submit">
+                        {workspace.appLoading ? <LoaderCircle className="button-spinner" size={14} /> : null}
+                        {workspace.appLoading ? "Saving" : "Save"}
+                      </button>
+                      <button className="ss-btn" disabled={workspace.appLoading} type="button" onClick={() => setEditingName(false)}>Cancel</button>
                     </form>
                   ) : (
                     <div className="ss-title-row">
@@ -883,8 +996,8 @@ export function PortfolioDashboard() {
                   </div>
                 </div>
                 <div className="ss-header-actions">
-                  <button type="button" className="ss-btn" onClick={() => void workspace.refreshWorkspace()}>
-                    <RefreshCw size={14} /> Sync workspace
+                  <button type="button" className="ss-btn" disabled={workspace.appLoading} onClick={() => void workspace.syncWorkspace(false)}>
+                    {workspace.appLoading ? <LoaderCircle className="button-spinner" size={14} /> : <RefreshCw size={14} />} Sync workspace
                   </button>
                   <Link className="ss-btn ss-btn-primary" href="/portfolio/setup">
                     <Plus size={14} /> Add holding
@@ -905,10 +1018,10 @@ export function PortfolioDashboard() {
                   <section className="ss-mid-grid">
                     <AllocationCard rows={rows} />
                     <SectorExposureCard exposure={workspace.portfolio?.categoryExposure || []} holdings={rows} />
-                    <InsightsCard notes={notes} />
+                    <InsightsCard notes={notes} rows={rows} />
                   </section>
 
-                  <HoldingsTable rows={rows} executionPlans={executionPlans} onAction={openAction} />
+                  <HoldingsTable rows={rows} executionPlans={executionPlans} onAction={openAction} disabled={workspace.appLoading} />
 
                   <ExecutionPanel plans={executionPlans} rows={rows} />
 

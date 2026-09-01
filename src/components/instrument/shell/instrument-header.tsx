@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, RefreshCw } from "lucide-react";
+import { LoaderCircle, Plus, RefreshCw } from "lucide-react";
 import { useInstrument } from "@/providers/instrument-provider";
 
 export function InstrumentHeader() {
@@ -23,8 +23,8 @@ export function InstrumentHeader() {
           </p>
         </div>
         <div className="ss-instrument-actions">
-          <button className="ss-btn" type="button" onClick={() => void instrument.loadAnalysis()}>
-            <RefreshCw size={14} /> Sync Instrument
+          <button className="ss-btn" disabled={instrument.analysisLoading} type="button" onClick={() => void instrument.loadAnalysis()}>
+            {instrument.analysisLoading ? <LoaderCircle className="button-spinner" size={14} /> : <RefreshCw size={14} />} Sync Instrument
           </button>
           <Link className="ss-btn ss-btn-primary" href={`${basePath}/alerts`}>
             <Plus size={14} /> Alert

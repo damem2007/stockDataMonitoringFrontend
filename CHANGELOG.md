@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-09-01
+
+### Frontend
+
+#### Added
+- Added a reusable `NotificationCenter` class to centralize notification construction and make future notification sources easier to add.
+- Added persisted notification activity events for authenticated alert create/delete actions, with CTAs back to the relevant alert workspace.
+
+#### Changed
+- Changed portfolio notifications to classify triggered alerts as red, portfolio inference as red/amber based on impact, and account/activity updates as friendly.
+- Changed the notification menu so `What's new` is reserved for system/product updates and no longer mirrors unread trading notifications.
+- Changed add-holding, watchlist onboarding, portfolio modal actions, portfolio rename, alert actions, account forms, and instrument chart/header actions to disable with inline loaders while their first click is still processing.
+- Changed portfolio row action buttons for Add more, Transfer, and Liquidate so they are disabled while another portfolio action is processing.
+- Changed add-holding save to force a scoped workspace sync before returning to Portfolio so new holdings refresh portfolio inference, notifications, and dashboard metrics from the latest saved state.
+- Changed add-holding success copy to `Instrument {symbol} has been added to {portfolio_name}` and suppress the follow-up rename toast when both actions happen together.
+- Changed allocation colors to assign unique instrument colors from avatar colors first, then generated non-duplicate fallback colors; sector colors now use unique avatar-palette colors by sector.
+
+#### Fixed
+- Fixed alert creation so the backend ignores stale client-sent alert IDs and protects alert writes from duplicate primary keys before inserting into the database.
+- Fixed alert creation to be idempotent for duplicate create clicks by returning an existing identical alert instead of inserting another record.
+- Fixed Add Alert draft state so opening a fresh alert no longer reuses the ID from a previously opened alert.
+- Fixed alert modal submission so the create-alert loader waits for the real async save instead of ending immediately.
+- Fixed the dedicated login/account submit paths so rejected async actions are caught by the caller after the shared provider reports the toast.
+
+## 2026-08-30
+
+### Frontend
+
+#### Added
+- Added a top-nav notification bell that classifies triggered price alerts as red, portfolio recommendations as amber, and account notices as friendly.
+- Added CTAs to portfolio inference notes and notification rows when a useful instrument/account destination exists.
+
+#### Changed
+- Changed notification IDs to stable alert/account/portfolio-insight identities so previously read items stay read across sessions instead of reappearing when text or trigger time changes.
+- Changed the notification dropdown to group items by "What's new", "Today", "This week", "Last 30 days", and "Earlier".
+- Changed the registered-user sign-out toast so it only appears when signing out from Watchlist, where the user automatically continues in guest mode.
+- Changed the public landing page header/theme toggle layout and mobile spacing so the day/night control stays aligned with the theme.
+- Changed initial workspace hydration to load saved portfolio/watchlist data before rendering the dashboard, while avoiding forced live refresh work on the first account load.
+- Changed notifications to be available only for authenticated users, with guest sessions continuing without a notification bell.
+- Changed portfolio notifications to use a compact amber pointer when dashboard inference needs review, keeping the detailed portfolio analysis in the Portfolio Insights panel.
+- Changed notification behavior so the bell badge counts unread items and individual notification line items turn into a muted read state after they are opened.
+- Changed the profile pill from a static risk label to a dynamic portfolio behavior indicator with an explanatory tooltip.
+- Changed account verification resend so expired links request a new link from the URL token first, only asking for email or username when the token is missing or cannot identify an account.
+- Changed portfolio holding summaries to show user-local time with UTC when the quote timestamp crosses the local/UTC date boundary.
+
+#### Fixed
+- Fixed Watchlist dashboard position trends disappearing after the holdings-table restyle by adding watchlist table theme-token scope and sparkline color fallbacks.
+
 ## 2026-08-29
 
 ### Frontend
@@ -104,7 +152,7 @@
 - Changed Watchlist promotion so `Add to portfolio` appears on watchlist rows instead of inside the Portfolio dashboard.
 - Changed portfolio execution plans into a compact portfolio-level table that reads existing `build_signal()` output across holdings and links each row into its instrument detail page.
 - Changed frontend dev port to `8520` to avoid conflicts with the existing local app.
-- Updated frontend API base URL to `http://127.0.0.1:8020`.
+- Updated frontend API base URL to `http://192.168.1.67:8020`.
 - Changed trading onboarding so book cost is displayed as a computed value from `average purchase price * shares`.
 - Changed dashboard startup so the app opens directly into the usable dashboard workflow after initial load.
 - Changed chart analysis requests so 1D range uses intraday Yahoo history.
@@ -119,7 +167,7 @@
 - Changed newly added shell/sidebar/auth utility files to project-native stock-dashboard code and removed copied BA-project dependencies and placeholder module routes.
 - Changed frontend auth role typing to support `superadmin`, `admin`, `user`, and `guest`.
 - Removed unused component/lib artifacts that were not wired into the stock dashboard workflow.
-- Changed the default frontend dev script to clear generated Next.js artifacts before startup and bind to `127.0.0.1:8520`; added `dev:fast` for incremental local starts.
+- Changed the default frontend dev script to clear generated Next.js artifacts before startup and bind to `192.168.1.67:8520`; added `dev:fast` for incremental local starts.
 
 #### Fixed
 - Fixed the custom chart so the Y-axis renders price labels and the X-axis labels are generated from the selected date range ending at the current time/today.

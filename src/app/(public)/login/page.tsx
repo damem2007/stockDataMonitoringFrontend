@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, use, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { LockKeyhole, ShieldCheck, UserPlus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PasswordField } from "@/components/auth/password-field";
@@ -39,13 +39,19 @@ function LoginContent() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (mode === "register") {
-      await session.register(email.trim(), username.trim() || email.split("@")[0] || "", fullName.trim(), password);
-    } else {
-      await session.signIn(loginName.trim(), password);
+    if (session.appLoading) return;
+
+    try {
+      if (mode === "register") {
+        await session.register(email.trim(), username.trim() || email.split("@")[0] || "", fullName.trim(), password);
+      } else {
+        await session.signIn(loginName.trim(), password);
+      }
+      setPassword("");
+      router.replace(nextPath);
+    } catch {
+      // SessionProvider reports the error through the shared toast system.
     }
-    setPassword("");
-    router.replace(nextPath);
   }
 
   if (session.initializing) return <ScreenLoader label="Loading sign-in" />;

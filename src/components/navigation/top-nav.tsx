@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut, Monitor, Moon, Sun } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { GUEST_WORKSPACE_KEY } from "@/lib/constants";
+import type { AppNotification } from "@/lib/types";
 import { useTheme } from "@/providers/theme-provider";
-import { queueFlashToast, useToast } from "@/providers/toast-provider";
+import { useToast } from "@/providers/toast-provider";
 import { useWorkspace } from "@/providers/workspace-provider";
 
 const ACCOUNT_ITEMS = [
@@ -63,7 +64,10 @@ export function TopNav() {
   const workspace = useWorkspace();
   const { showToast } = useToast();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
+  const [notificationTab, setNotificationTab] = useState<"notifications" | "new">("notifications");
   const menuRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
   const isGuest = !session.user || session.user.isGuest;
   const displayUser = {
@@ -71,24 +75,34 @@ export function TopNav() {
     username: session.user?.username || "guest user",
   };
   const userAvatar = generateUserAvatar(String(displayUser.name || displayUser.username));
+  const systemUpdates: AppNotification[] = [];
+  const visibleNotifications = notificationTab === "new" ? systemUpdates : workspace.notifications;
+  const notificationGroups = groupNotifications(visibleNotifications);
 
   //console.log("Initial", userAvatar);
 
   useEffect(() => {
     setAccountMenuOpen(false);
+    setNotificationMenuOpen(false);
   }, [path]);
 
   useEffect(() => {
-    if (!accountMenuOpen) return;
+    if (!accountMenuOpen && !notificationMenuOpen) return;
 
     const handlePointerDown = (event: PointerEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) {
         setAccountMenuOpen(false);
       }
+      if (!notificationRef.current?.contains(event.target as Node)) {
+        setNotificationMenuOpen(false);
+      }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setAccountMenuOpen(false);
+      if (event.key === "Escape") {
+        setAccountMenuOpen(false);
+        setNotificationMenuOpen(false);
+      }
     };
 
     document.addEventListener("pointerdown", handlePointerDown);
@@ -98,7 +112,7 @@ export function TopNav() {
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [accountMenuOpen]);
+  }, [accountMenuOpen, notificationMenuOpen]);
 
   const handleAvatarClick = () => {
     setAccountMenuOpen((open) => !open);
@@ -109,16 +123,18 @@ export function TopNav() {
     session.signOut();
     if(isGuest){
       window.localStorage.removeItem(GUEST_WORKSPACE_KEY);
-      showToast("Signed out. You are continuing as a guest.", "info")
       router.push("/?next=/watchlist");
       return;
     }
+    if (path.startsWith("/watchlist")) {
+      showToast("Signed out. You are continuing as a guest.", "info");
+      router.refresh();
+      return;
+    }
     if (path.startsWith("/portfolio") || path.startsWith("/account")) {
-      queueFlashToast("Signed out successfully.", "info");
       router.push(`/?next=${encodeURIComponent(path)}`);
       return;
     }
-    showToast("Signed out. You are continuing as a guest.", "info");
     router.refresh();
   };
 
@@ -143,7 +159,7 @@ export function TopNav() {
       </div>
 
       <div className="topbar-user">
-        <span className="profile-pill">{workspace.riskProfile} profile</span>
+        <span className="profile-pill" title={workspace.profileIndicatorReason}>{workspace.profileIndicator} profile</span>
 
         <button
           type="button"
@@ -154,6 +170,91 @@ export function TopNav() {
         >
           {theme.preference === "system" ? <Monitor aria-hidden="true" /> : theme.resolvedTheme === "light" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
         </button>
+
+        {!isGuest ? (
+          <div className="notification-menu" ref={notificationRef}>
+            <button
+              type="button"
+              className="notification-button"
+              onClick={() => setNotificationMenuOpen((open) => !open)}
+              aria-haspopup="menu"
+              aria-expanded={notificationMenuOpen}
+              aria-label="Open notifications"
+            >
+              <Bell aria-hidden="true" />
+              {workspace.unreadNotificationCount ? <span className="notification-badge">{workspace.unreadNotificationCount}</span> : null}
+            </button>
+            {notificationMenuOpen ? (
+              <div className="notification-dropdown" role="menu" aria-label="Notifications">
+                <div className="notification-dropdown-header">
+                  <div className="notification-tabs" aria-label="Notification sections">
+                    <button
+                      className={notificationTab === "notifications" ? "is-active" : ""}
+                      onClick={() => setNotificationTab("notifications")}
+                      type="button"
+                    >
+                      Notifications
+                    </button>
+                    <button
+                      className={notificationTab === "new" ? "is-active" : ""}
+                      onClick={() => setNotificationTab("new")}
+                      type="button"
+                    >
+                      What's new
+                    </button>
+                  </div>
+                  <p>{notificationTab === "new" ? "System updates and product changes will appear here." : "Red alerts, amber recommendations, and friendly account notes"}</p>
+                </div>
+                <div className="notification-list">
+                  {visibleNotifications.length ? notificationGroups.map((group) => (
+                    <section className="notification-group" key={group.label}>
+                      <h3>{group.label}</h3>
+                      {group.items.map((item) => {
+                        const content = (
+                          <>
+                            <span className={`notification-dot ${item.tone}`} />
+                            <span>
+                              <strong>{item.title}</strong>
+                              <small>{item.detail}</small>
+                              <span className="notification-meta-row">
+                                <em>{relativeNotificationTime(item.occurredAt)}</em>
+                                {item.href ? <b>{item.ctaLabel || "Open"}</b> : null}
+                                {item.read ? <i>Read</i> : null}
+                              </span>
+                            </span>
+                          </>
+                        );
+                        return item.href ? (
+                          <Link
+                            key={item.id}
+                            href={item.href}
+                            role="menuitem"
+                            className={`notification-item${item.read ? " read" : ""}`}
+                            onClick={() => workspace.markNotificationRead(item.id)}
+                          >
+                            {content}
+                          </Link>
+                        ) : (
+                          <button
+                            key={item.id}
+                            type="button"
+                            role="menuitem"
+                            className={`notification-item${item.read ? " read" : ""}`}
+                            onClick={() => workspace.markNotificationRead(item.id)}
+                          >
+                            {content}
+                          </button>
+                        );
+                      })}
+                    </section>
+                  )) : (
+                    <div className="notification-empty">{notificationTab === "new" ? "No system updates yet." : "No active notifications."}</div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div
           className="account-menu"
@@ -196,7 +297,7 @@ export function TopNav() {
                 </div>
               ) : (
                 <div className="account-dropdown-list">
-                  <Link href="/?mode=register" role="menuitem">
+                  <Link href="/login?mode=register" role="menuitem">
                     Create an account
                   </Link>
                 </div>
@@ -214,4 +315,44 @@ export function TopNav() {
       </div>
     </header>
   );
+}
+
+function groupNotifications(items: AppNotification[]) {
+  const groups = new Map<string, AppNotification[]>();
+  items.forEach((item) => {
+    const label = notificationGroupLabel(item);
+    groups.set(label, [...(groups.get(label) || []), item]);
+  });
+  return Array.from(groups, ([label, groupItems]) => ({
+    label,
+    items: groupItems.sort((a, b) => notificationTimeValue(b) - notificationTimeValue(a)),
+  }));
+}
+
+function notificationGroupLabel(item: AppNotification) {
+  const value = notificationTimeValue(item);
+  if (!value) return "Earlier";
+  const ageMs = Date.now() - value;
+  if (ageMs < 24 * 60 * 60 * 1000) return "Today";
+  if (ageMs < 7 * 24 * 60 * 60 * 1000) return "This week";
+  if (ageMs < 30 * 24 * 60 * 60 * 1000) return "Last 30 days";
+  return "Earlier";
+}
+
+function relativeNotificationTime(value?: string) {
+  const time = notificationTimeValue({ occurredAt: value } as AppNotification);
+  if (!time) return "Recently";
+  const diff = Date.now() - time;
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  if (diff < minute) return "Just now";
+  if (diff < hour) return `${Math.floor(diff / minute)} min ago`;
+  if (diff < day) return `${Math.floor(diff / hour)} hr ago`;
+  return `${Math.floor(diff / day)} days ago`;
+}
+
+function notificationTimeValue(item: AppNotification) {
+  const time = item.occurredAt ? new Date(item.occurredAt).getTime() : 0;
+  return Number.isFinite(time) ? time : 0;
 }

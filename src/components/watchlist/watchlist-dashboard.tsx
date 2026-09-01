@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { EyeIcon, Plus, RefreshCw } from "lucide-react";
+import { EyeIcon, LoaderCircle, Plus, RefreshCw } from "lucide-react";
 import { SUPPORTED_MARKETS } from "@/lib/config";
 import type { Exchange } from "@/lib/types";
 import { cleanSymbol, currencyForSymbol, money, percent } from "@/lib/workspace-utils";
@@ -86,7 +86,10 @@ export function WatchlistDashboard() {
                   </div>
                 ) : null}
               </div>
-              <button className="primary" onClick={w.addTickerToWorkspace}>Add</button>
+                <button className="primary" disabled={w.appLoading} onClick={w.addTickerToWorkspace}>
+                  {w.appLoading ? <LoaderCircle className="button-spinner" size={14} /> : null}
+                  Add
+                </button>
             </div>
           </div>
 
@@ -107,9 +110,12 @@ export function WatchlistDashboard() {
               ))}
             </div>
             {!isGuest ? (
-              <button onClick={() => w.persistInstruments(w.instruments, "Instrument changes saved.")}>Save watchlist</button>
+              <button disabled={w.appLoading} onClick={() => w.persistInstruments(w.instruments, "Instrument changes saved.")}>
+                {w.appLoading ? <LoaderCircle className="button-spinner" size={14} /> : null}
+                Save watchlist
+              </button>
             ) : (
-              <button onClick={() => router.push("/?next=/watchlist")}>Sign in to save</button>
+              <button disabled={w.appLoading} onClick={() => router.push("/?next=/watchlist")}>Sign in to save</button>
             )}
           </div>
         </aside>
@@ -130,8 +136,8 @@ export function WatchlistDashboard() {
                 ) : null}
               </div>
               <div className="header-actions">
-                <button type="button" onClick={() => void w.syncWorkspace(false)}>
-                  <RefreshCw size={14} /> Sync Workspace
+                <button type="button" disabled={w.appLoading} onClick={() => void w.syncWorkspace(false)}>
+                  {w.appLoading ? <LoaderCircle className="button-spinner" size={14} /> : <RefreshCw size={14} />} Sync Workspace
                 </button>
               </div>
             </section>

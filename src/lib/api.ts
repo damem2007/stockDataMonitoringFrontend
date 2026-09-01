@@ -60,10 +60,10 @@ export function verifyAccount(token: string) {
   return apiFetch<{ access_token: string; token_type: string; user: User }>(`/api/auth/verify-account?${new URLSearchParams({ token }).toString()}`);
 }
 
-export function requestVerificationLink(loginName: string) {
+export function requestVerificationLink(payload: { login?: string; token?: string }) {
   return apiFetch<{ status: string }>("/api/auth/request-verification", {
     method: "POST",
-    body: { login: loginName },
+    body: payload,
   });
 }
 
@@ -181,8 +181,9 @@ export function updateInstruments(token: string | null, instruments: Instrument[
   });
 }
 
-export function getPortfolio(token: string) {
-  return apiFetch<PortfolioPayload>("/api/portfolio", { token });
+export function getPortfolio(token: string, refresh = false) {
+  const query = refresh ? "?refresh=true" : "";
+  return apiFetch<PortfolioPayload>(`/api/portfolio${query}`, { token });
 }
 
 export function getAnalysis(symbol: string, params: URLSearchParams) {

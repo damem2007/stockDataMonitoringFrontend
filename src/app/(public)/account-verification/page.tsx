@@ -12,17 +12,20 @@ type VerificationState = "checking" | "verified" | "failed";
 
 function AccountVerificationContent() {
   const params = useSearchParams();
+  const token = params.get("token") || "";
   const [state, setState] = useState<VerificationState>("checking");
   const [message, setMessage] = useState("Checking your verification link...");
   const [verificationLogin, setVerificationLogin] = useState("");
+  const [manualResend, setManualResend] = useState(false);
+  const [resendBlocked, setResendBlocked] = useState(false);
   const [requestingLink, setRequestingLink] = useState(false);
   const [requestMessage, setRequestMessage] = useState("");
 
   useEffect(() => {
-    const token = params.get("token") || "";
     if (!token) {
       setState("failed");
       setMessage("This verification link is missing a token.");
+      setManualResend(true);
       return;
     }
 
@@ -37,31 +40,38 @@ function AccountVerificationContent() {
       })
       .catch((error) => {
         if (cancelled) return;
+        const text = error instanceof Error ? error.message : "Verification failed. Please request a new link.";
         setState("failed");
-        setMessage(error instanceof Error ? error.message : "Verification failed. Please request a new link.");
+        setMessage(text);
+        setManualResend(text.toLowerCase().includes("invalid"));
+        setResendBlocked(text.toLowerCase().includes("no longer matches an active account"));
       });
 
     return () => {
       cancelled = true;
     };
-  }, [params]);
+  }, [token]);
 
   const Icon = state === "checking" ? Loader2 : state === "verified" ? CheckCircle2 : XCircle;
 
   async function requestNewLink(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const login = verificationLogin.trim();
-    if (!login) {
+    const useManualFallback = manualResend || !token;
+    if (useManualFallback && !login) {
       setRequestMessage("Enter your email or username to request a new link.");
       return;
     }
     setRequestingLink(true);
     setRequestMessage("");
     try {
-      await requestVerificationLink(login);
+      await requestVerificationLink(useManualFallback ? { login } : { token });
       setRequestMessage("If the account exists and needs verification, a new link has been sent.");
     } catch (error) {
-      setRequestMessage(error instanceof Error ? error.message : "Could not request a new verification link.");
+      const text = error instanceof Error ? error.message : "Could not request a new verification link.";
+      setRequestMessage(text);
+      if (text.toLowerCase().includes("invalid")) setManualResend(true);
+      if (text.toLowerCase().includes("no longer matches an active account")) setResendBlocked(true);
     } finally {
       setRequestingLink(false);
     }
@@ -78,17 +88,19 @@ function AccountVerificationContent() {
           <h1>{state === "verified" ? "Account verified" : state === "failed" ? "Verification failed" : "Verifying account"}</h1>
           <p className="muted">{message}</p>
         </div>
-        {state === "failed" ? (
+        {state === "failed" && !resendBlocked ? (
           <form className="verification-resend-form" onSubmit={requestNewLink}>
-            <label>
-              <span>Email or username</span>
-              <input
-                value={verificationLogin}
-                onChange={(event) => setVerificationLogin(event.target.value)}
-                placeholder="you@example.com"
-                autoComplete="username"
-              />
-            </label>
+            {manualResend || !token ? (
+              <label>
+                <span>Email or username</span>
+                <input
+                  value={verificationLogin}
+                  onChange={(event) => setVerificationLogin(event.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="username"
+                />
+              </label>
+            ) : null}
             <button className="button-link primary" type="submit" disabled={requestingLink}>
               {requestingLink ? "Requesting..." : "Request new link"}
             </button>
@@ -97,7 +109,7 @@ function AccountVerificationContent() {
         ) : null}
         <div className="inline-actions">
           {state === "verified" ? <Link className="button-link primary" href="/watchlist">Continue to workspace</Link> : null}
-          {state === "failed" ? <Link className="button-link primary" href="/?mode=register">Create account</Link> : null}
+          {state === "failed" ? <Link className="button-link primary" href="/login?mode=register">Create account</Link> : null}
           <Link className="button-link" href="/">Back to landing page</Link>
         </div>
       </section>

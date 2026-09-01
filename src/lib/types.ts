@@ -94,6 +94,31 @@ export type AlertRule = {
   message?: string;
   notifications?: string[];
   enabled?: boolean;
+  last_triggered_at?: string | null;
+  lastTriggeredAt?: string | null;
+};
+
+export type AppNotification = {
+  id: string;
+  tone: "red" | "amber" | "friendly";
+  title: string;
+  detail: string;
+  href?: string;
+  ctaLabel?: string;
+  occurredAt?: string;
+  read?: boolean;
+};
+
+export type NotificationActivity = {
+  id: string;
+  kind: string;
+  tone?: AppNotification["tone"];
+  title: string;
+  detail: string;
+  symbol?: string;
+  href?: string;
+  ctaLabel?: string;
+  occurredAt: string;
 };
 
 export type AnalysisPayload = {
@@ -102,6 +127,7 @@ export type AnalysisPayload = {
   sourceStatus?: string;
   snapshotStatus?: string;
   earningsStatus?: string;
+  latestQuote?: Record<string, unknown>;
   history: Record<string, unknown>[];
   summary?: { title: string; subtitle: string; markdown: string; html: string };
   signal?: Record<string, unknown>;

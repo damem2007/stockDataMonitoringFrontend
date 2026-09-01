@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { RANGES } from "@/lib/constants";
 import { useInstrument } from "@/providers/instrument-provider";
@@ -38,9 +40,34 @@ function daysForRange(range: string) {
 export function ChartView() {
   const instrument = useInstrument();
   const router = useRouter();
+  const [temporaryLoading, setTemporaryLoading] = useState(false);
+  const [promotingRole, setPromotingRole] = useState<"Watching" | "Trading" | null>(null);
   const primary = filterHistory(instrument.analysis?.history || [], instrument.dateRange);
   const comparisonAnalysis = instrument.temporaryAnalysis || instrument.compareAnalysis;
   const comparison = comparisonAnalysis?.history ? filterHistory(comparisonAnalysis.history, instrument.dateRange) : [];
+  const busy = instrument.analysisLoading || temporaryLoading || Boolean(promotingRole);
+
+  async function loadTemporary() {
+    if (busy) return;
+    setTemporaryLoading(true);
+    try {
+      await instrument.loadTemporaryComparison();
+    } finally {
+      setTemporaryLoading(false);
+    }
+  }
+
+  async function promoteTemporary(role: "Watching" | "Trading") {
+    if (busy || !instrument.temporaryAnalysis?.symbol) return;
+    setPromotingRole(role);
+    try {
+      const promoted = await instrument.promoteTemporary(role);
+      if (promoted && role === "Trading") router.push(`/portfolio/setup?symbol=${encodeURIComponent(promoted.symbol)}`);
+    } finally {
+      setPromotingRole(null);
+    }
+  }
+
   return <div className="ss-chart-view">
     <div className="ss-chart-controls">
       <div className="ss-segmented">{RANGES.map((range) => <button className={instrument.dateRange === range ? "active" : ""} key={range} onClick={() => instrument.setDateRange(range)}>{range}</button>)}</div>
@@ -51,10 +78,19 @@ export function ChartView() {
       <PriceChart primary={primary} comparison={comparison} primaryLabel={instrument.analysis?.symbol || ""} comparisonLabel={comparisonAnalysis?.symbol || ""} chartType={instrument.chartType} dateRange={instrument.dateRange} />
     </div>
     <div className="ss-temporary-row">
-      <input value={instrument.temporarySymbol} onChange={(event) => instrument.setTemporarySymbol(event.target.value)} placeholder="Temporary comparison ticker" />
-      <button className="ss-btn" onClick={() => void instrument.loadTemporaryComparison()}>Load temporary</button>
-      <button className="ss-btn" disabled={!instrument.temporaryAnalysis?.symbol} onClick={() => void instrument.promoteTemporary("Watching")}>Add to watchlist</button>
-      <button className="ss-btn ss-btn-primary" disabled={!instrument.temporaryAnalysis?.symbol} onClick={async () => { const promoted = await instrument.promoteTemporary("Trading"); if (promoted) router.push(`/portfolio/setup?symbol=${encodeURIComponent(promoted.symbol)}`); }}>Add to portfolio</button>
+      <input disabled={busy} value={instrument.temporarySymbol} onChange={(event) => instrument.setTemporarySymbol(event.target.value)} placeholder="Temporary comparison ticker" />
+      <button className="ss-btn" disabled={busy || !instrument.temporarySymbol.trim()} onClick={loadTemporary}>
+        {temporaryLoading ? <LoaderCircle className="button-spinner" size={14} /> : null}
+        {temporaryLoading ? "Loading" : "Load temporary"}
+      </button>
+      <button className="ss-btn" disabled={busy || !instrument.temporaryAnalysis?.symbol} onClick={() => void promoteTemporary("Watching")}>
+        {promotingRole === "Watching" ? <LoaderCircle className="button-spinner" size={14} /> : null}
+        {promotingRole === "Watching" ? "Adding" : "Add to watchlist"}
+      </button>
+      <button className="ss-btn ss-btn-primary" disabled={busy || !instrument.temporaryAnalysis?.symbol} onClick={() => void promoteTemporary("Trading")}>
+        {promotingRole === "Trading" ? <LoaderCircle className="button-spinner" size={14} /> : null}
+        {promotingRole === "Trading" ? "Adding" : "Add to portfolio"}
+      </button>
     </div>
   </div>;
 }
